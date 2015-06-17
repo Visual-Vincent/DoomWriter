@@ -3,4 +3,4 @@
 
 See the LICENSE file for information about the license.
 
-Keep in mind that this code is not very well written and is using the longest, most complex ways to perform it's actions.
+Keep in mind that this code is not very well written and is using very long, complex ways to perform it's actions.
