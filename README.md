@@ -1,4 +1,4 @@
-# DoomWriter_v1.2.7
+# Doom Writer v1.2.7
 #### Source code for Doom Writer v1.2.7
 
 See the LICENSE file for information about the license.
