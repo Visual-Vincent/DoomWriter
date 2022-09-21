@@ -5,22 +5,12 @@ namespace DoomWriter
     /// <summary>
     /// Encapsulates an in-memory image-based glyph.
     /// </summary>
-    public class ImageGlyph : IGlyph<Image>
+    public class ImageGlyph : IGlyph<Image>, IDisposable
     {
         /// <summary>
         /// Gets the image containing the glyph.
         /// </summary>
         public Image Image { get; }
-
-        /// <summary>
-        /// Gets the x-coordinate of the top-left corner of the glyph in <see cref="Image"/>.
-        /// </summary>
-        public int X { get; }
-
-        /// <summary>
-        /// Gets the y-coordinate of the top-left corner of the glyph in <see cref="Image"/>.
-        /// </summary>
-        public int Y { get; }
 
         /// <inheritdoc/>
         public int Width { get; }
@@ -33,5 +23,39 @@ namespace DoomWriter
         {
             destination.DrawImage(Image, x, y);
         }
+
+        #region IDisposable Support
+        private bool disposedValue;
+
+        private void Dispose(bool disposing)
+        {
+            if(!disposedValue)
+            {
+                if(disposing)
+                {
+                    // Dispose managed resources
+                    Image?.Dispose();
+                }
+
+                // Free unmanaged resources
+
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~ImageGlyph()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

@@ -9,7 +9,8 @@ namespace DoomWriter
     /// Represents a drawable image surface.
     /// </summary>
     /// <typeparam name="TPixel">The pixel format of the underlying image surface.</typeparam>
-    public sealed class ImageSurface<TPixel> : ISurface<Image> where TPixel : unmanaged, IPixel<TPixel>
+    public sealed class ImageSurface<TPixel> : ISurface<Image>, IDisposable
+        where TPixel : unmanaged, IPixel<TPixel>
     {
         private readonly Image<TPixel> baseImage;
 
@@ -23,9 +24,51 @@ namespace DoomWriter
             baseImage = new Image<TPixel>(width, height);
         }
 
+        /// <summary>
+        /// Gets the final, rendered image. The caller is responsible for disposing it.
+        /// </summary>
+        public Image<TPixel> GetImage()
+        {
+            return baseImage.Clone();
+        }
+
         public void DrawImage(Image image, int x, int y)
         {
             baseImage.Mutate(c => c.DrawImage(image.BaseImage, new Point(x, y), 1.0f));
         }
+
+        #region IDisposable Support
+        private bool disposedValue;
+
+        private void Dispose(bool disposing)
+        {
+            if(!disposedValue)
+            {
+                if(disposing)
+                {
+                    // Dispose managed resources
+                    baseImage?.Dispose();
+                }
+
+                // Free unmanaged resources
+
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~ImageSurface()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
