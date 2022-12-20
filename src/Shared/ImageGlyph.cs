@@ -1,4 +1,5 @@
 ﻿using System;
+using SixLabors.ImageSharp.Processing;
 
 namespace DoomWriter
 {
@@ -17,6 +18,34 @@ namespace DoomWriter
 
         /// <inheritdoc/>
         public int Height { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImageGlyph"/> class.
+        /// </summary>
+        /// <param name="image">The image containing the glyph.</param>
+        /// <param name="width">The width of the glyph.</param>
+        /// <param name="height">The height of the glyph.</param>
+        public ImageGlyph(Image image, int width, int height)
+        {
+            if(image == null)
+                throw new ArgumentNullException(nameof(image));
+
+            if(width <= 0 || height <= 0)
+                throw new ArgumentException("Width and height of the glyph must be greater than zero");
+
+            Image = image;
+            Width = width;
+            Height = height;
+        }
+
+        /// <summary>
+        /// Makes a deep copy of the <see cref="ImageGlyph"/>.
+        /// </summary>
+        public ImageGlyph Clone()
+        {
+            Image clonedImage = new Image(Image.BaseImage.Clone((img) => { }));
+            return new ImageGlyph(clonedImage, Width, Height);
+        }
 
         /// <inheritdoc/>
         public void Draw(ISurface<Image> destination, int x, int y)
