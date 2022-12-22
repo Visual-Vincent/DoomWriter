@@ -26,7 +26,7 @@ namespace DoomWriter
         /// <summary>
         /// Gets the glyphs of the font.
         /// </summary>
-        protected IDictionary<char, TGlyph> GlyphTable => glyphs;
+        protected internal IDictionary<char, TGlyph> GlyphTable => glyphs;
 
         /// <summary>
         /// Gets the glyphs of the font.
@@ -34,7 +34,7 @@ namespace DoomWriter
         public IReadOnlyDictionary<char, TGlyph> Glyphs => glyphsLookup;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Font"/> class.
+        /// Initializes a new instance of the <see cref="Font{TGlyph, TGlyphImage}"/> class.
         /// </summary>
         public Font()
         {
@@ -48,7 +48,7 @@ namespace DoomWriter
     /// </summary>
     public class Font : Font<ImageGlyph, Image>, IDisposable
     {
-        private static readonly byte[] FontFormatVersion = new byte[] { 1, 0 };
+        private static readonly byte[] FontFormatVersion = new byte[] { 0, 1 };
         private static readonly byte[] MagicNumber = new byte[] { 0x6, 0x6, 0x6, (byte)'D', (byte)'W', (byte)'F', (byte)'O', (byte)'N' };
 
         private static readonly Encoding StringEncoding = Encoding.UTF8;
@@ -58,6 +58,13 @@ namespace DoomWriter
             IgnoreMetadata = true,
             TransparentColorMode = PngTransparentColorMode.Clear
         };
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Font"/> class.
+        /// </summary>
+        public Font()
+        {
+        }
 
         protected internal override void OnLoadFontData(Font fontData)
         {
@@ -161,16 +168,19 @@ namespace DoomWriter
                 using(var glyphStream = new MemoryStream(glyphs))
                 using(var glyphReader = new BinaryReader(glyphStream, StringEncoding))
                 {
-                    char glyphChar = glyphReader.ReadChar();
-                    int width = glyphReader.ReadInt32();
-                    int height = glyphReader.ReadInt32();
+                    while(glyphStream.Position < glyphStream.Length)
+                    {
+                        char glyphChar = glyphReader.ReadChar();
+                        int width = glyphReader.ReadInt32();
+                        int height = glyphReader.ReadInt32();
 
-                    byte[] imageData = glyphReader.ReadLengthPrefixed();
+                        byte[] imageData = glyphReader.ReadLengthPrefixed();
 
-                    SixLaborsImage image = SixLaborsImage.Load(imageData);
-                    ImageGlyph glyph = new ImageGlyph(new Image(image), width, height);
+                        SixLaborsImage image = SixLaborsImage.Load(imageData);
+                        ImageGlyph glyph = new ImageGlyph(new Image(image), width, height);
 
-                    fontData.GlyphTable[glyphChar] = glyph;
+                        fontData.GlyphTable[glyphChar] = glyph;
+                    }
                 }
 
                 var font = new TFont();

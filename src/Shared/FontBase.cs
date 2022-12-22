@@ -10,17 +10,17 @@ namespace DoomWriter
         /// <summary>
         /// Gets the distance between lines.
         /// </summary>
-        public int LineHeight { get; protected set; }
+        public int LineHeight { get; protected internal set; }
 
         /// <summary>
         /// Gets the width of the space character.
         /// </summary>
-        public int SpaceWidth { get; protected set; }
+        public int SpaceWidth { get; protected internal set; }
 
         /// <summary>
-        /// Gets the width of the tab character.
+        /// Gets the number of spaces that the tab character represents.
         /// </summary>
-        public int TabWidth { get; protected set; }
+        public int TabWidth { get; protected internal set; }
 
         /// <summary>
         /// Called when the font is loaded.
