@@ -8,19 +8,29 @@ namespace DoomWriter
     public abstract class FontBase
     {
         /// <summary>
+        /// Gets the height of empty lines.
+        /// </summary>
+        public int EmptyLineHeight { get; protected internal set; }
+
+        /// <summary>
+        /// Gets the spacing between the letters of the font.
+        /// </summary>
+        public short LetterSpacing { get; protected internal set; }
+
+        /// <summary>
         /// Gets the distance between lines.
         /// </summary>
-        public int LineHeight { get; protected internal set; }
+        public short LineHeight { get; protected internal set; }
 
         /// <summary>
         /// Gets the width of the space character.
         /// </summary>
-        public int SpaceWidth { get; protected internal set; }
+        public ushort SpaceWidth { get; protected internal set; }
 
         /// <summary>
         /// Gets the number of spaces that the tab character represents.
         /// </summary>
-        public int TabWidth { get; protected internal set; }
+        public byte TabWidth { get; protected internal set; }
 
         /// <summary>
         /// Called when the font is loaded.

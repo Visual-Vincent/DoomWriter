@@ -32,8 +32,13 @@ namespace DoomWriter
             return baseImage.Clone();
         }
 
+        /// <inheritdoc/>
         public void DrawImage(Image image, int x, int y)
         {
+            // Out of bounds check
+            if(x > baseImage.Width || y > baseImage.Height || x + image.Width < 0 || y + image.Height < 0)
+                return;
+
             baseImage.Mutate(c => c.DrawImage(image.BaseImage, new Point(x, y), 1.0f));
         }
 

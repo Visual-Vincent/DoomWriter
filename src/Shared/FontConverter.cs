@@ -16,7 +16,8 @@ namespace DoomWriter
     /// </summary>
     public static class FontConverter
     {
-        private const int DefaultLineHeight = 16; // TODO: Verify
+        private const int DefaultEmptyLineHeight = 12;
+        private const int DefaultLineHeight = 4;
         private const int DefaultTabWidth = 4;
 
         private static readonly char[] LegacyChartGlyphs =
@@ -74,12 +75,17 @@ namespace DoomWriter
                 string[] settings = sections[2].Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
                 ThrowHelper.Assert(settings.Length >= 4, new FormatException("Data is not a valid legacy Doom Writer chart"));
 
-                if(!int.TryParse(settings[0], out var spaceWidth))
+                if(!ushort.TryParse(settings[0], out var spaceWidth))
                     throw new FormatException("Data is not a valid legacy Doom Writer chart");
 
+                if(!short.TryParse(settings[1], out var letterSpacing))
+                    throw new FormatException("Data is not a valid legacy Doom Writer chart");
+
+                font.EmptyLineHeight = DefaultEmptyLineHeight;
                 font.LineHeight = DefaultLineHeight;
                 font.TabWidth = DefaultTabWidth;
                 font.SpaceWidth = spaceWidth;
+                font.LetterSpacing = (short)-letterSpacing; // In Doom Writer v2.0.0, letter spacing is inverted
 
                 char[] descenderGlyphs = settings[2].Split(':').Select(s => {
                     ThrowHelper.Assert(s.Length == 1, new FormatException("Data is not a valid legacy Doom Writer chart"));

@@ -68,6 +68,8 @@ namespace DoomWriter
 
         protected internal override void OnLoadFontData(Font fontData)
         {
+            EmptyLineHeight = fontData.EmptyLineHeight;
+            LetterSpacing = fontData.LetterSpacing;
             LineHeight = fontData.LineHeight;
             SpaceWidth = fontData.SpaceWidth;
             TabWidth = fontData.TabWidth;
@@ -85,6 +87,9 @@ namespace DoomWriter
         /// <param name="font">The font to write.</param>
         public static void Save(Stream stream, Font font)
         {
+            if(stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
             if(!stream.CanWrite)
                 throw new ArgumentException("Stream is not writable", nameof(stream));
 
@@ -96,9 +101,11 @@ namespace DoomWriter
                 using(var settingsStream = new MemoryStream())
                 using(var settingsWriter = new BinaryWriter(settingsStream, StringEncoding))
                 {
+                    settingsWriter.Write(font.LetterSpacing);
                     settingsWriter.Write(font.LineHeight);
                     settingsWriter.Write(font.SpaceWidth);
                     settingsWriter.Write(font.TabWidth);
+                    settingsWriter.Write(font.EmptyLineHeight);
 
                     writer.WriteLengthPrefixed(settingsStream.ToArray());
                 }
@@ -135,6 +142,9 @@ namespace DoomWriter
         public static TFont Load<TFont>(Stream stream)
             where TFont : FontBase, new()
         {
+            if(stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
             if(!stream.CanRead)
                 throw new ArgumentException("Stream is not readable", nameof(stream));
 
@@ -158,9 +168,11 @@ namespace DoomWriter
                 using(var settingsStream = new MemoryStream(settings))
                 using(var settingsReader = new BinaryReader(settingsStream, StringEncoding))
                 {
-                    fontData.LineHeight = settingsReader.ReadInt32();
-                    fontData.SpaceWidth = settingsReader.ReadInt32();
-                    fontData.TabWidth = settingsReader.ReadInt32();
+                    fontData.LetterSpacing = settingsReader.ReadInt16();
+                    fontData.LineHeight = settingsReader.ReadInt16();
+                    fontData.SpaceWidth = settingsReader.ReadUInt16();
+                    fontData.TabWidth = settingsReader.ReadByte();
+                    fontData.EmptyLineHeight = settingsReader.ReadInt32();
                 }
 
                 byte[] glyphs = reader.ReadLengthPrefixed(new FormatException("The contents of the stream is not a valid Doom Writer Font file"));
@@ -187,6 +199,23 @@ namespace DoomWriter
                 font.OnLoadFontData(fontData);
 
                 return font;
+            }
+        }
+
+        /// <summary>
+        /// Loads a font file.
+        /// </summary>
+        /// <typeparam name="TFont">The type of font to load.</typeparam>
+        /// <param name="file">The path to the font file to load.</param>
+        public static TFont Load<TFont>(string file)
+            where TFont : FontBase, new()
+        {
+            if(file == null)
+                throw new ArgumentNullException(nameof(file));
+
+            using(var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                return Load<TFont>(fileStream);
             }
         }
 
