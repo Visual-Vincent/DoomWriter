@@ -130,8 +130,10 @@ namespace DoomWriter
 
                     try
                     {
-                        // TODO: Set glyph descender
-                        font.GlyphTable[LegacyChartGlyphs[i]] = new ImageGlyph(new Image(glyphImage), width, height);
+                        char c = LegacyChartGlyphs[i];
+
+                        descenders.TryGetValue(c, out var descender);
+                        font.GlyphTable[c] = new ImageGlyph(new Image(glyphImage), width, height, descender);
                     }
                     catch
                     {

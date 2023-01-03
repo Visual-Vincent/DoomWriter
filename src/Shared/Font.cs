@@ -121,6 +121,7 @@ namespace DoomWriter
                         glyphWriter.Write(glyphChar);
                         glyphWriter.Write(glyph.Width);
                         glyphWriter.Write(glyph.Height);
+                        glyphWriter.Write(glyph.Descender);
 
                         using(var imageStream = new MemoryStream())
                         {
@@ -185,11 +186,12 @@ namespace DoomWriter
                         char glyphChar = glyphReader.ReadChar();
                         int width = glyphReader.ReadInt32();
                         int height = glyphReader.ReadInt32();
+                        int descender = glyphReader.ReadInt32();
 
                         byte[] imageData = glyphReader.ReadLengthPrefixed();
 
                         SixLaborsImage image = SixLaborsImage.Load(imageData);
-                        ImageGlyph glyph = new ImageGlyph(new Image(image), width, height);
+                        ImageGlyph glyph = new ImageGlyph(new Image(image), width, height, descender);
 
                         fontData.GlyphTable[glyphChar] = glyph;
                     }

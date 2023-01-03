@@ -19,13 +19,17 @@ namespace DoomWriter
         /// <inheritdoc/>
         public int Height { get; }
 
+        /// <inheritdoc/>
+        public int Descender { get; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ImageGlyph"/> class.
         /// </summary>
         /// <param name="image">The image containing the glyph.</param>
         /// <param name="width">The width of the glyph.</param>
         /// <param name="height">The height of the glyph.</param>
-        public ImageGlyph(Image image, int width, int height)
+        /// <param name="descender">The descender of the glyph.</param>
+        public ImageGlyph(Image image, int width, int height, int descender)
         {
             if(image == null)
                 throw new ArgumentNullException(nameof(image));
@@ -33,9 +37,13 @@ namespace DoomWriter
             if(width <= 0 || height <= 0)
                 throw new ArgumentException("Width and height of the glyph must be greater than zero");
 
+            if(descender < 0)
+                throw new ArgumentException("The descender of the glyph must be greater than or equal to zero", nameof(descender));
+
             Image = image;
             Width = width;
             Height = height;
+            Descender = descender;
         }
 
         /// <summary>
@@ -44,7 +52,7 @@ namespace DoomWriter
         public ImageGlyph Clone()
         {
             Image clonedImage = new Image(Image.BaseImage.Clone((img) => { }));
-            return new ImageGlyph(clonedImage, Width, Height);
+            return new ImageGlyph(clonedImage, Width, Height, Descender);
         }
 
         /// <inheritdoc/>

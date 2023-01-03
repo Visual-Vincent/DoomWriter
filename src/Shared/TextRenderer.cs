@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,7 +41,7 @@ namespace DoomWriter
             {
                 foreach(var g in line.Glyphs)
                 {
-                    g.Glyph.Draw(surface, g.X, y + (line.Height - g.Glyph.Height));
+                    g.Glyph.Draw(surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender));
                 }
 
                 y += line.Height + line.LineHeight;
@@ -74,6 +74,7 @@ namespace DoomWriter
                 {
                     int x = 0;
                     int lineHeight = line.Length <= 0 ? currentFont.EmptyLineHeight : 0;
+                    int tallestDescender = 0;
 
                     var fontLineHeight = currentFont.LineHeight;
                     var letterSpacing = currentFont.LetterSpacing;
@@ -123,6 +124,9 @@ namespace DoomWriter
                         if(glyph.Height > lineHeight)
                             lineHeight = glyph.Height;
 
+                        if(glyph.Descender > tallestDescender)
+                            tallestDescender = glyph.Descender;
+
                         if(currentFont.LineHeight > fontLineHeight)
                             fontLineHeight = currentFont.LineHeight;
                     }
@@ -132,7 +136,7 @@ namespace DoomWriter
 
                     height += lineHeight + fontLineHeight;
 
-                    lines.Add(new TextMeasuredLine<ImageGlyph, Image>(glyphs, x, lineHeight, fontLineHeight));
+                    lines.Add(new TextMeasuredLine<ImageGlyph, Image>(glyphs, x, lineHeight, fontLineHeight, tallestDescender));
                 }
 
                 height -= lines.Last().LineHeight;

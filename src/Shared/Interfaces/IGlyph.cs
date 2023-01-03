@@ -19,6 +19,11 @@ namespace DoomWriter
         int Height { get; }
 
         /// <summary>
+        /// Gets the glyph's descender.
+        /// </summary>
+        int Descender { get; }
+
+        /// <summary>
         /// Draws the glyph onto the destination surface.
         /// </summary>
         /// <param name="destination">The image to draw the glyph onto.</param>

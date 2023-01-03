@@ -32,7 +32,7 @@ namespace DoomWriter
         public int Y { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RenderedGlyph"/> structure.
+        /// Initializes a new instance of the <see cref="RenderedGlyph{TGlyph, TImage}"/> structure.
         /// </summary>
         /// <param name="glyphChar">The glyph represented by this structure.</param>
         /// <param name="glyph">The font glyph represented by this structure.</param>
