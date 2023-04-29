@@ -14,11 +14,11 @@ namespace DoomWriter
     /// <summary>
     /// Represents a font with a specific type of glyph.
     /// </summary>
+    /// <typeparam name="TImage">The type of image used by the font.</typeparam>
     /// <typeparam name="TGlyph">The type of glyphs used by the font.</typeparam>
-    /// <typeparam name="TGlyphImage">The type of image used by the glyphs.</typeparam>
-    public abstract class Font<TGlyph, TGlyphImage> : FontBase
-        where TGlyphImage : IImage
-        where TGlyph : IGlyph<TGlyphImage>
+    public abstract class Font<TImage, TGlyph> : FontBase
+        where TImage : IImage
+        where TGlyph : IGlyph
     {
         private readonly IDictionary<char, TGlyph> glyphs;
         private readonly IReadOnlyDictionary<char, TGlyph> glyphsLookup;
@@ -34,19 +34,28 @@ namespace DoomWriter
         public IReadOnlyDictionary<char, TGlyph> Glyphs => glyphsLookup;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Font{TGlyph, TGlyphImage}"/> class.
+        /// Initializes a new instance of the <see cref="Font{TImage, TGlyph}"/> class.
         /// </summary>
         public Font()
         {
             glyphs = new Dictionary<char, TGlyph>();
             glyphsLookup = new ReadOnlyDictionary<char, TGlyph>(glyphs);
         }
+
+        /// <summary>
+        /// Draws a glyph onto the destination surface.
+        /// </summary>
+        /// <param name="glyph">The glyph to draw.</param>
+        /// <param name="destination">The surface to draw the glyph onto.</param>
+        /// <param name="x">The x-coordinate of the top-left corner where to draw the image.</param>
+        /// <param name="y">The y-coordinate of the top-left corner where to draw the image.</param>
+        public abstract void DrawGlyph(TGlyph glyph, ISurface<TImage> destination, int x, int y);
     }
 
     /// <summary>
     /// Represents the default in-memory font format.
     /// </summary>
-    public class Font : Font<ImageGlyph, Image>, IDisposable
+    public sealed class Font : Font<Image, Glyph>, IDisposable
     {
         private static readonly byte[] FontFormatVersion = new byte[] { 0, 1 };
         private static readonly byte[] MagicNumber = new byte[] { 0x6, 0x6, 0x6, (byte)'D', (byte)'W', (byte)'F', (byte)'O', (byte)'N' };
@@ -58,6 +67,11 @@ namespace DoomWriter
             IgnoreMetadata = true,
             TransparentColorMode = PngTransparentColorMode.Clear
         };
+
+        /// <summary>
+        /// Gets the base image containing all the glyphs of the font.
+        /// </summary>
+        public Image Image { get; internal set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Font"/> class.
@@ -74,10 +88,18 @@ namespace DoomWriter
             SpaceWidth = fontData.SpaceWidth;
             TabWidth = fontData.TabWidth;
 
+            Image = fontData.Image.Clone();
+
             foreach(var kvp in fontData.GlyphTable)
             {
-                GlyphTable.Add(kvp.Key, kvp.Value.Clone());
+                GlyphTable.Add(kvp.Key, kvp.Value);
             }
+        }
+
+        /// <inheritdoc/>
+        public override void DrawGlyph(Glyph glyph, ISurface<Image> destination, int x, int y)
+        {
+            destination.DrawImage(Image, x, y, new Rectangle(glyph.X, glyph.Y, glyph.Width, glyph.Height));
         }
 
         /// <summary>
@@ -110,24 +132,26 @@ namespace DoomWriter
                     writer.WriteLengthPrefixed(settingsStream.ToArray());
                 }
 
+                using(var imageStream = new MemoryStream())
+                {
+                    font.Image.BaseImage.SaveAsPng(imageStream, DefaultPngEncoder);
+                    writer.WriteLengthPrefixed(imageStream.ToArray());
+                }
+
                 using(var glyphStream = new MemoryStream())
                 using(var glyphWriter = new BinaryWriter(glyphStream, StringEncoding))
                 {
                     foreach(var kvp in font.GlyphTable)
                     {
                         char glyphChar = kvp.Key;
-                        ImageGlyph glyph = kvp.Value;
+                        Glyph glyph = kvp.Value;
 
                         glyphWriter.Write(glyphChar);
+                        glyphWriter.Write(glyph.X);
+                        glyphWriter.Write(glyph.Y);
                         glyphWriter.Write(glyph.Width);
                         glyphWriter.Write(glyph.Height);
                         glyphWriter.Write(glyph.Descender);
-
-                        using(var imageStream = new MemoryStream())
-                        {
-                            glyph.Image.BaseImage.SaveAsPng(imageStream, DefaultPngEncoder);
-                            glyphWriter.WriteLengthPrefixed(imageStream.ToArray());
-                        }
                     }
 
                     writer.WriteLengthPrefixed(glyphStream.ToArray());
@@ -176,6 +200,11 @@ namespace DoomWriter
                     fontData.EmptyLineHeight = settingsReader.ReadInt32();
                 }
 
+                byte[] imageData = reader.ReadLengthPrefixed(new FormatException("The contents of the stream is not a valid Doom Writer Font file"));
+
+                SixLaborsImage imageSrc = SixLaborsImage.Load(imageData);
+                fontData.Image = new Image(imageSrc);
+
                 byte[] glyphs = reader.ReadLengthPrefixed(new FormatException("The contents of the stream is not a valid Doom Writer Font file"));
 
                 using(var glyphStream = new MemoryStream(glyphs))
@@ -184,16 +213,13 @@ namespace DoomWriter
                     while(glyphStream.Position < glyphStream.Length)
                     {
                         char glyphChar = glyphReader.ReadChar();
+                        int x = glyphReader.ReadInt32();
+                        int y = glyphReader.ReadInt32();
                         int width = glyphReader.ReadInt32();
                         int height = glyphReader.ReadInt32();
                         int descender = glyphReader.ReadInt32();
 
-                        byte[] imageData = glyphReader.ReadLengthPrefixed();
-
-                        SixLaborsImage image = SixLaborsImage.Load(imageData);
-                        ImageGlyph glyph = new ImageGlyph(new Image(image), width, height, descender);
-
-                        fontData.GlyphTable[glyphChar] = glyph;
+                        fontData.GlyphTable[glyphChar] = new Glyph(x, y, width, height, descender);
                     }
                 }
 
@@ -231,10 +257,7 @@ namespace DoomWriter
                 if(disposing)
                 {
                     // Dispose managed resources
-                    foreach(var glyph in Glyphs.Values)
-                    {
-                        glyph.Dispose();
-                    }
+                    Image?.Dispose();
                 }
 
                 // Free unmanaged resources

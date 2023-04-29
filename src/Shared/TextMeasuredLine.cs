@@ -6,16 +6,12 @@ namespace DoomWriter
     /// <summary>
     /// Represents the result of calculating the location and bounds of a rendered representation of the glyphs in a line of text.
     /// </summary>
-    /// <typeparam name="TGlyph">The type of rendered glyph.</typeparam>
-    /// <typeparam name="TImage">The type of image used by the glyphs.</typeparam>
-    public class TextMeasuredLine<TGlyph, TImage>
-        where TGlyph : IGlyph<TImage>
-        where TImage : IImage
+    public sealed class TextMeasuredLine
     {
         /// <summary>
         /// Gets the rendered glyphs and their bounds.
         /// </summary>
-        public IEnumerable<RenderedGlyph<TGlyph, TImage>> Glyphs { get; }
+        public IEnumerable<RenderedGlyph> Glyphs { get; }
 
         /// <summary>
         /// Gets the width of the rendered line of text.
@@ -38,14 +34,14 @@ namespace DoomWriter
         public int TallestDescender { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TextMeasuredLine{TGlyph, TImage}"/> class.
+        /// Initializes a new instance of the <see cref="TextMeasuredLine"/> class.
         /// </summary>
         /// <param name="glyphs">The rendered glyphs and their bounds.</param>
         /// <param name="width">The width of the rendered text.</param>
         /// <param name="height">The height of the rendered text.</param>
         /// <param name="lineHeight">The distance between the current line and the next.</param>
         /// <param name="tallestDescender">The height of the tallest descender found in this line of text.</param>
-        public TextMeasuredLine(IEnumerable<RenderedGlyph<TGlyph, TImage>> glyphs, int width, int height, int lineHeight, int tallestDescender)
+        public TextMeasuredLine(IEnumerable<RenderedGlyph> glyphs, int width, int height, int lineHeight, int tallestDescender)
         {
             if(glyphs == null)
                 throw new ArgumentNullException(nameof(glyphs));

@@ -68,6 +68,7 @@ namespace DoomWriter
                 ThrowHelper.Assert(sections.Length >= 3, new FormatException("Data is not a valid legacy Doom Writer chart"));
 
                 chartImage = SixLaborsImage.Load(Convert.FromBase64String(sections[0]));
+                font.Image = new Image(chartImage);
 
                 for(int i = 1; i < sections.Length; i++)
                     sections[i] = DecryptLegacyChartData(Encoding.UTF8.GetBytes(sections[i]));
@@ -126,20 +127,10 @@ namespace DoomWriter
                     )
                         continue;
 
-                    SixLaborsImage glyphImage = chartImage.Clone(img => img.Crop(new Rectangle(x, y, width, height)));
+                    char c = LegacyChartGlyphs[i];
 
-                    try
-                    {
-                        char c = LegacyChartGlyphs[i];
-
-                        descenders.TryGetValue(c, out var descender);
-                        font.GlyphTable[c] = new ImageGlyph(new Image(glyphImage), width, height, descender);
-                    }
-                    catch
-                    {
-                        glyphImage?.Dispose(); // To ensure we don't have a memory leak
-                        throw;
-                    }
+                    descenders.TryGetValue(c, out var descender);
+                    font.GlyphTable[c] = new Glyph(x, y, width, height, descender);
                 }
 
                 return font;
@@ -153,10 +144,6 @@ namespace DoomWriter
             {
                 font?.Dispose();
                 throw new FormatException("Data is not a valid legacy Doom Writer chart", ex);
-            }
-            finally
-            {
-                chartImage?.Dispose();
             }
         }
     }

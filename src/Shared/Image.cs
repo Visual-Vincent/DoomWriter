@@ -2,7 +2,7 @@
 using System.IO;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
-
+using SixLabors.ImageSharp.Processing;
 using SixLaborsImage = SixLabors.ImageSharp.Image;
 
 namespace DoomWriter
@@ -14,7 +14,10 @@ namespace DoomWriter
     {
         internal SixLaborsImage BaseImage { get; }
 
+        /// <inheritdoc/>
         public int Width => BaseImage.Width;
+
+        /// <inheritdoc/>
         public int Height => BaseImage.Height;
 
         /// <summary>
@@ -24,6 +27,14 @@ namespace DoomWriter
         public Image(SixLaborsImage image)
         {
             BaseImage = image ?? throw new ArgumentNullException(nameof(image));
+        }
+
+        /// <summary>
+        /// Returns a deep copy of the <see cref="Image"/>.
+        /// </summary>
+        public Image Clone()
+        {
+            return new Image(BaseImage.Clone(_ => { }));
         }
 
         /// <summary>

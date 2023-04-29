@@ -2,17 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace DoomWriter
 {
     /// <summary>
     /// The default Doom Writer text renderer.
     /// </summary>
-    public class TextRenderer : TextRendererBase, ITextRenderer<Image, ImageGlyph, Image>
+    public class TextRenderer : TextRendererBase, ITextRenderer<Image, Glyph>
     {
         private static readonly Font DefaultFont = LoadDefaultFont<Font>();
 
@@ -30,7 +27,7 @@ namespace DoomWriter
         }
 
         /// <inheritdoc/>
-        public Image Render(string text, Font<ImageGlyph, Image> font)
+        public Image Render(string text, Font<Image, Glyph> font)
         {
             var measurement = Measure(text, font);
             var surface = new ImageSurface<Rgba32>(measurement.Width, measurement.Height);
@@ -41,7 +38,7 @@ namespace DoomWriter
             {
                 foreach(var g in line.Glyphs)
                 {
-                    g.Glyph.Draw(surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender));
+                    font.DrawGlyph((Glyph)g.Glyph, surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender));
                 }
 
                 y += line.Height + line.LineHeight;
@@ -50,7 +47,7 @@ namespace DoomWriter
             return new Image(surface.GetImage());
         }
 
-        private TextMeasurementResult<ImageGlyph, Image> Measure(string text, Font<ImageGlyph, Image> font)
+        private TextMeasurementResult Measure(string text, Font<Image, Glyph> font)
         {
             if(text == null)
                 throw new ArgumentNullException(nameof(text));
@@ -64,8 +61,8 @@ namespace DoomWriter
             int width = 0;
             int height = 0;
 
-            var lines = new List<TextMeasuredLine<ImageGlyph, Image>>();
-            Font<ImageGlyph, Image> currentFont = font;
+            var lines = new List<TextMeasuredLine>();
+            Font<Image, Glyph> currentFont = font;
 
             using(StringReader reader = new StringReader(text))
             {
@@ -81,7 +78,7 @@ namespace DoomWriter
                     var spaceWidth = currentFont.SpaceWidth + currentFont.LetterSpacing;
                     var tabWidth = currentFont.TabWidth;
 
-                    var glyphs = new List<RenderedGlyph<ImageGlyph, Image>>();
+                    var glyphs = new List<RenderedGlyph>();
 
                     // Ensure spaces are always the same size
                     if(line.Length > 0 && (line[0] == ' ' || line[0] == '\t'))
@@ -117,7 +114,7 @@ namespace DoomWriter
                             continue;
                         }
 
-                        glyphs.Add(new RenderedGlyph<ImageGlyph, Image>(c, glyph, x, 0)); // y is calculated when rendering
+                        glyphs.Add(new RenderedGlyph(c, glyph, x, 0)); // y is calculated when rendering
 
                         x += glyph.Width + letterSpacing;
 
@@ -136,13 +133,13 @@ namespace DoomWriter
 
                     height += lineHeight + fontLineHeight;
 
-                    lines.Add(new TextMeasuredLine<ImageGlyph, Image>(glyphs, x, lineHeight, fontLineHeight, tallestDescender));
+                    lines.Add(new TextMeasuredLine(glyphs, x, lineHeight, fontLineHeight, tallestDescender));
                 }
 
                 height -= lines.Last().LineHeight;
             }
 
-            return new TextMeasurementResult<ImageGlyph, Image>(lines, width, height);
+            return new TextMeasurementResult(lines, width, height);
         }
     }
 }

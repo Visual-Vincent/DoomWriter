@@ -15,5 +15,14 @@ namespace DoomWriter
         /// <param name="x">The x-coordinate of the upper-left corner of the drawn image.</param>
         /// <param name="y">The y-coordinate of the upper-left corner of the drawn image.</param>
         void DrawImage(TImage image, int x, int y);
+
+        /// <summary>
+        /// Draws a portion of an image onto the surface.
+        /// </summary>
+        /// <param name="image">The image to draw.</param>
+        /// <param name="x">The x-coordinate of the upper-left corner of the drawn image.</param>
+        /// <param name="y">The y-coordinate of the upper-left corner of the drawn image.</param>
+        /// <param name="srcRect">The portion of the specified image to draw.</param>
+        void DrawImage(TImage image, int x, int y, Rectangle srcRect);
     }
 }
