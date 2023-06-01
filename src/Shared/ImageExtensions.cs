@@ -1,7 +1,6 @@
 ﻿using System;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Processing.Processors.Drawing;
 
 using SixLaborsImage = SixLabors.ImageSharp.Image;
 
@@ -19,7 +18,7 @@ namespace DoomWriter
         public static IImageProcessingContext DrawImage(this IImageProcessingContext source, SixLaborsImage image, Point point, Rectangle srcRect)
         {
             GraphicsOptions options = source.GetGraphicsOptions();
-            return source.ApplyProcessor(new DrawImageProcessor(image, point, options.ColorBlendingMode, options.AlphaCompositionMode, 1.0f), srcRect);
+            return source.ApplyProcessor(new DrawImageAlternateProcessor(image, point, options.ColorBlendingMode, options.AlphaCompositionMode, 1.0f), srcRect);
         }
     }
 }
