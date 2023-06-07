@@ -68,14 +68,9 @@ namespace DoomWriter
             return translation;
         }
 
-        private static int Lerp(int a, int b, int v)
+        internal static int Lerp(int a, int b, int v)
         {
             return ((a << 8) + (b - a) * v) >> 8;
-        }
-
-        private static double Luminance(Rgba32 pixel)
-        {
-            return pixel.R * 0.299 + pixel.G * 0.587 + pixel.B * 0.114;
         }
 
         /// <summary>
@@ -109,68 +104,87 @@ namespace DoomWriter
         /// <summary>
         /// Reads an image from disk and applies the specified color translation it.
         /// </summary>
-        /// <param name="image">The image to translate.</param>
+        /// <param name="image">The path to the image to translate.</param>
         /// <param name="translation">The color translation to use.</param>
         public static Image<Rgba32> Translate(string image, ColorTranslation translation)
         {
             if(image == null)
                 throw new ArgumentNullException(nameof(image));
 
-            using(var result = SixLaborsImage.Load<Rgba32>(image))
-            {
-                return Translate(result, translation);
-            }
+            if(translation == null)
+                throw new ArgumentNullException(nameof(translation));
+
+            var result = SixLaborsImage.Load<Rgba32>(image);
+
+            Translate(result, translation);
+
+            return result;
         }
 
         /// <summary>
-        /// Clones the specified image and applies the specified color translation.
+        /// Calculates the minimum and maximum luminance within the specified image.
         /// </summary>
-        /// <param name="image">The image to translate.</param>
-        /// <param name="translation">The color translation to use.</param>
-        public static Image<Rgba32> Translate(Image<Rgba32> image, ColorTranslation translation)
+        /// <param name="image">The image whose luminance range to calculate.</param>
+        public static (double Min, double Max) CalculateLuminanceRange(Image<Rgba32> image)
         {
             if(image == null)
                 throw new ArgumentNullException(nameof(image));
 
-            var result = image.Clone();
+            double min = double.MaxValue;
+            double max = double.MinValue;
 
-            if(translation.IsUntranslated)
-                return result;
-            
-            double minLum = double.MaxValue;
-            double maxLum = double.MinValue;
-
-            for(int x = 0; x < result.Width; x++)
+            for(int x = 0; x < image.Width; x++)
             {
-                for(int y = 0; y < result.Height; y++)
+                for(int y = 0; y < image.Height; y++)
                 {
-                    var pixel = result[x, y];
+                    var pixel = image[x, y];
 
                     if(pixel.A == 0)
                         continue;
 
-                    var luminance = Luminance(pixel);
+                    var luminance = pixel.Luminance();
 
-                    if(luminance > maxLum)
-                        maxLum = luminance;
-                    else if(luminance < minLum)
-                        minLum = luminance;
+                    if(luminance > max)
+                        max = luminance;
+                    else if(luminance < min)
+                        min = luminance;
                 }
             }
+
+            return (min, max);
+        }
+
+        /// <summary>
+        /// Applies the specified color translation to the specified image.
+        /// </summary>
+        /// <param name="image">The image to translate.</param>
+        /// <param name="translation">The color translation to use.</param>
+        public static void Translate(Image<Rgba32> image, ColorTranslation translation)
+        {
+            if(image == null)
+                throw new ArgumentNullException(nameof(image));
+
+            if(translation == null)
+                throw new ArgumentNullException(nameof(translation));
+
+            if(translation.IsUntranslated)
+                return;
+
+            (double minLum, double maxLum) = CalculateLuminanceRange(image);
 
             double diffLum = maxLum - minLum;
             var cache = new Dictionary<int, TranslationRange>();
 
-            for(int x = 0; x < result.Width; x++)
+            for(int x = 0; x < image.Width; x++)
             {
-                for(int y = 0; y < result.Height; y++)
+                for(int y = 0; y < image.Height; y++)
                 {
-                    var pixel = result[x, y];
+                    var pixel = image[x, y];
 
                     if(pixel.A == 0)
                         continue;
 
-                    var luminance = Luminance(pixel);
+                    var luminance = pixel.Luminance();
                     int lum = (int)((luminance - minLum) / diffLum * 256.0);
 
                     if(!cache.TryGetValue(lum, out var range))
@@ -190,11 +204,9 @@ namespace DoomWriter
                     int g = Lerp(start.G, end.G, v).Clamp(0, 255);
                     int b = Lerp(start.B, end.B, v).Clamp(0, 255);
 
-                    result[x, y] = new Rgba32((byte)r, (byte)g, (byte)b, 255);
+                    image[x, y] = new Rgba32((byte)r, (byte)g, (byte)b, pixel.A);
                 }
             }
-
-            return result;
         }
     }
 }

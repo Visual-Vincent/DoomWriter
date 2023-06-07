@@ -52,6 +52,16 @@ namespace DoomWriter
             baseImage.Mutate(c => c.DrawImage(image.BaseImage, new Point(x, y), srcRect));
         }
 
+        /// <inheritdoc/>
+        public void DrawImage(Image image, int x, int y, Rectangle srcRect, ColorTranslation translation)
+        {
+            // Out of bounds check
+            if(x > baseImage.Width || y > baseImage.Height || x + srcRect.Width < 0 || y + srcRect.Height < 0)
+                return;
+
+            baseImage.Mutate(c => c.DrawImage(image.BaseImage, new Point(x, y), srcRect, translation));
+        }
+
         #region IDisposable Support
         private bool disposedValue;
 

@@ -13,11 +13,25 @@ namespace DoomWriter
     {
         private static readonly Font DefaultFont = LoadDefaultFont<Font>();
 
+        private readonly Dictionary<string, ColorTranslation> translations = new Dictionary<string, ColorTranslation>();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRenderer"/> class.
         /// </summary>
         public TextRenderer()
         {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TextRenderer"/> class.
+        /// </summary>
+        /// <param name="translationsTable">A table containing all color translations that will be made available to the renderer.</param>
+        public TextRenderer(IDictionary<string, ColorTranslation> translationsTable)
+        {
+            foreach(var kvp in translationsTable)
+            {
+                translations.Add(kvp.Key, kvp.Value.Clone());
+            }
         }
 
         /// <inheritdoc/>
@@ -38,7 +52,7 @@ namespace DoomWriter
             {
                 foreach(var g in line.Glyphs)
                 {
-                    font.DrawGlyph((Glyph)g.Glyph, surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender));
+                    font.DrawGlyph((Glyph)g.Glyph, surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender), g.Translation);
                 }
 
                 y += line.Height + line.LineHeight;
@@ -62,7 +76,9 @@ namespace DoomWriter
             int height = 0;
 
             var lines = new List<TextMeasuredLine>();
+
             Font<Image, Glyph> currentFont = font;
+            ColorTranslation currentTranslation = null;
 
             using(StringReader reader = new StringReader(text))
             {
@@ -106,6 +122,26 @@ namespace DoomWriter
                             case '\t':
                                 x += tabWidth * spaceWidth;
                                 continue;
+
+                            case '\\':
+                                if(i + 2 >= line.Length || line[i+1] != 'c')
+                                    break;
+
+                                char colorCode = char.ToUpperInvariant(line[i+2]);
+
+                                if(colorCode >= 'A' && colorCode <= 'Z')
+                                {
+                                    translations.TryGetValue(colorCode.ToString(), out currentTranslation);
+                                    i += 2;
+                                    continue;
+                                }
+                                else if(colorCode == '-')
+                                {
+                                    currentTranslation = null;
+                                    i += 2;
+                                    continue;
+                                }
+                                break;
                         }
 
                         if(!currentFont.Glyphs.TryGetValue(c, out var glyph))
@@ -114,7 +150,7 @@ namespace DoomWriter
                             continue;
                         }
 
-                        glyphs.Add(new RenderedGlyph(c, glyph, x, 0)); // y is calculated when rendering
+                        glyphs.Add(new RenderedGlyph(c, glyph, x, 0, currentTranslation)); // y is calculated when rendering
 
                         x += glyph.Width + letterSpacing;
 

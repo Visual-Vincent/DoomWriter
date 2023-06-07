@@ -5,7 +5,6 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing.Processors;
-using SixLabors.ImageSharp.Processing.Processors.Drawing;
 
 using SixLaborsImage = SixLabors.ImageSharp.Image;
 using SixLaborsPoint = SixLabors.ImageSharp.Point;
@@ -33,16 +32,18 @@ namespace DoomWriter
     //
     //
     //   With modifications by     :  Visual Vincent
-    //   Modifications description :  Rewrote method OnFrameApply() and struct RowOperation in class DrawImageAlternateProcessor<TPixelBg, TPixelFg>
+    //   Modifications description :  Rewrote method OnFrameApply() and struct RowOperation in class DrawTranslatedImageProcessorInternal
     //                                to properly handle drawing portions of one image onto another (reference: https://github.com/SixLabors/ImageSharp/issues/2447).
+    //
+    //                                Adapted code to work with ColorTranslation.
     //
     //                                Additionally some minor changes were made, such as reordering certain properties and removing "this." where applicable.
     //
 
     /// <summary>
-    /// Combines two images together by blending the pixels. Differs from <see cref="DrawImageProcessor"/> in that this correctly draws portions of one image onto another.
+    /// Combines two images together by applying a color translation to the blended image and then blending the pixels.
     /// </summary>
-    public class DrawImageAlternateProcessor : IImageProcessor
+    public class DrawTranslatedImageProcessor : IImageProcessor
     {
         /// <summary>
         /// Gets the image to blend.
@@ -65,23 +66,30 @@ namespace DoomWriter
         public PixelAlphaCompositionMode AlphaCompositionMode { get; }
 
         /// <summary>
+        /// Gets the color translation to use when drawing the image.
+        /// </summary>
+        public ColorTranslation Translation { get; }
+
+        /// <summary>
         /// Gets the opacity of the image to blend.
         /// </summary>
         public float Opacity { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DrawImageAlternateProcessor"/> class.
+        /// Initializes a new instance of the <see cref="DrawTranslatedImageProcessor"/> class.
         /// </summary>
         /// <param name="image">The image to blend.</param>
         /// <param name="location">The location to draw the blended image.</param>
         /// <param name="colorBlendingMode">The blending mode to use when drawing the image.</param>
         /// <param name="alphaCompositionMode">The Alpha blending mode to use when drawing the image.</param>
+        /// <param name="translation">The color translation to use when drawing the image.</param>
         /// <param name="opacity">The opacity of the image to blend.</param>
-        public DrawImageAlternateProcessor(
+        public DrawTranslatedImageProcessor(
             SixLaborsImage image,
             SixLaborsPoint location,
             PixelColorBlendingMode colorBlendingMode,
             PixelAlphaCompositionMode alphaCompositionMode,
+            ColorTranslation translation,
             float opacity)
         {
 #pragma warning disable IDE0016 // Use 'throw' expression
@@ -89,13 +97,11 @@ namespace DoomWriter
                 throw new ArgumentNullException(nameof(image));
 #pragma warning restore IDE0016
 
-            if(opacity < 0.0f || opacity > 1.0f)
-                throw new ArgumentOutOfRangeException(nameof(opacity));
-
             Image = image;
             Location = location;
             ColorBlendingMode = colorBlendingMode;
             AlphaCompositionMode = alphaCompositionMode;
+            Translation = translation;
             Opacity = opacity;
         }
 
@@ -103,40 +109,43 @@ namespace DoomWriter
         public IImageProcessor<TPixelBg> CreatePixelSpecificProcessor<TPixelBg>(Configuration configuration, Image<TPixelBg> source, SixLaborsRectangle sourceRectangle)
             where TPixelBg : unmanaged, IPixel<TPixelBg>
         {
-            var visitor = new ProcessorFactoryVisitor<TPixelBg>(configuration, this, source, sourceRectangle);
+            if(typeof(TPixelBg) != typeof(Rgba32))
+                throw new NotSupportedException($"Failed to draw image: Attempted to draw to an image with pixel format {typeof(TPixelBg).Name}. {nameof(DrawTranslatedImageProcessor)} supports only {nameof(Rgba32)}");
+
+            var visitor = new ProcessorFactoryVisitor(configuration, this, source as Image<Rgba32>, sourceRectangle);
             Image.AcceptVisitor(visitor);
-            return visitor.Result;
+            return visitor.Result as IImageProcessor<TPixelBg>;
         }
 
-        private class ProcessorFactoryVisitor<TPixelBg> : IImageVisitor
-            where TPixelBg : unmanaged, IPixel<TPixelBg>
+        private class ProcessorFactoryVisitor : IImageVisitor
         {
             private readonly Configuration configuration;
-            private readonly DrawImageAlternateProcessor definition;
-            private readonly Image<TPixelBg> source;
+            private readonly DrawTranslatedImageProcessor definition;
+            private readonly Image<Rgba32> source;
             private readonly SixLaborsRectangle sourceRectangle;
 
-            public ProcessorFactoryVisitor(Configuration configuration, DrawImageAlternateProcessor definition, Image<TPixelBg> source, SixLaborsRectangle sourceRectangle)
+            public ProcessorFactoryVisitor(Configuration configuration, DrawTranslatedImageProcessor definition, Image<Rgba32> source, SixLaborsRectangle sourceRectangle)
             {
                 this.configuration = configuration;
                 this.definition = definition;
-                this.source = source;
+                this.source = source as Image<Rgba32>;
                 this.sourceRectangle = sourceRectangle;
             }
 
-            public IImageProcessor<TPixelBg> Result { get; private set; }
+            public IImageProcessor<Rgba32> Result { get; private set; }
 
             public void Visit<TPixelFg>(Image<TPixelFg> image)
                 where TPixelFg : unmanaged, IPixel<TPixelFg>
             {
-                Result = new DrawImageAlternateProcessor<TPixelBg, TPixelFg>(
+                Result = new DrawTranslatedImageProcessorInternal(
                     configuration,
-                    image,
+                    image as Image<Rgba32>,
                     source,
                     sourceRectangle,
                     definition.Location,
                     definition.ColorBlendingMode,
                     definition.AlphaCompositionMode,
+                    definition.Translation,
                     definition.Opacity
                 );
             }
@@ -144,53 +153,56 @@ namespace DoomWriter
     }
 
     /// <summary>
-    /// Combines two images together by blending the pixels.
+    /// Combines two images together by applying a color translation to the foreground image and then blending the pixels.
     /// </summary>
-    /// <typeparam name="TPixelBg">The pixel format of destination image.</typeparam>
-    /// <typeparam name="TPixelFg">The pixel format of source image.</typeparam>
-    internal class DrawImageAlternateProcessor<TPixelBg, TPixelFg> : ImageProcessor<TPixelBg>
-        where TPixelBg : unmanaged, IPixel<TPixelBg>
-        where TPixelFg : unmanaged, IPixel<TPixelFg>
+    internal class DrawTranslatedImageProcessorInternal : ImageProcessor<Rgba32>
     {
         /// <summary>
-        /// Gets the pixel blender
+        /// Gets the pixel blender.
         /// </summary>
-        public PixelBlender<TPixelBg> Blender { get; }
+        public PixelBlender<Rgba32> Blender { get; }
 
         /// <summary>
-        /// Gets the image to blend
+        /// Gets the image to blend.
         /// </summary>
-        public Image<TPixelFg> Image { get; }
+        public Image<Rgba32> Image { get; }
 
         /// <summary>
-        /// Gets the location to draw the blended image
+        /// Gets the location to draw the blended image.
         /// </summary>
         public SixLaborsPoint Location { get; }
 
         /// <summary>
-        /// Gets the opacity of the image to blend
+        /// Gets the color translation to use when drawing the image.
+        /// </summary>
+        public ColorTranslation Translation { get; }
+
+        /// <summary>
+        /// Gets the opacity of the image to blend.
         /// </summary>
         public float Opacity { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DrawImageAlternateProcessor{TPixelBg, TPixelFg}"/> class.
+        /// Initializes a new instance of the <see cref="DrawTranslatedImageProcessorInternal"/> class.
         /// </summary>
         /// <param name="configuration">The configuration which allows altering default behaviour or extending the library.</param>
-        /// <param name="image">The foreground <see cref="Image{TPixelFg}"/> to blend with the currently processing image.</param>
-        /// <param name="source">The source <see cref="Image{TPixelBg}"/> for the current processor instance.</param>
+        /// <param name="image">The foreground <see cref="Image{Rgba32}"/> to blend with the currently processing image.</param>
+        /// <param name="source">The source <see cref="Image{Rgba32}"/> for the current processor instance.</param>
         /// <param name="sourceRectangle">The source area to process for the current processor instance.</param>
         /// <param name="location">The location to draw the blended image.</param>
         /// <param name="colorBlendingMode">The blending mode to use when drawing the image.</param>
         /// <param name="alphaCompositionMode">The Alpha blending mode to use when drawing the image.</param>
+        /// <param name="translation">The color translation to use when drawing the image.</param>
         /// <param name="opacity">The opacity of the image to blend. Must be between 0 and 1.</param>
-        public DrawImageAlternateProcessor(
+        public DrawTranslatedImageProcessorInternal(
             Configuration configuration,
-            Image<TPixelFg> image,
-            Image<TPixelBg> source,
+            Image<Rgba32> image,
+            Image<Rgba32> source,
             SixLaborsRectangle sourceRectangle,
             SixLaborsPoint location,
             PixelColorBlendingMode colorBlendingMode,
             PixelAlphaCompositionMode alphaCompositionMode,
+            ColorTranslation translation,
             float opacity)
             : base(configuration, source, sourceRectangle)
         {
@@ -202,21 +214,23 @@ namespace DoomWriter
             if(opacity < 0.0f || opacity > 1.0f)
                 throw new ArgumentOutOfRangeException(nameof(opacity));
 
-            Blender = PixelOperations<TPixelBg>.Instance.GetPixelBlender(colorBlendingMode, alphaCompositionMode);
+            Blender = PixelOperations<Rgba32>.Instance.GetPixelBlender(colorBlendingMode, alphaCompositionMode);
             Image = image;
             Location = location;
+            Translation = translation;
             Opacity = opacity;
         }
 
         /// <inheritdoc/>
-        protected override void OnFrameApply(ImageFrame<TPixelBg> source)
+        protected override void OnFrameApply(ImageFrame<Rgba32> source)
         {
             SixLaborsPoint location = Location;
             SixLaborsRectangle sourceRectangle = SourceRectangle;
             Configuration configuration = Configuration;
 
-            Image<TPixelFg> targetImage = Image;
-            PixelBlender<TPixelBg> blender = Blender;
+            Image<Rgba32> targetImage = Image;
+            PixelBlender<Rgba32> blender = Blender;
+            ColorTranslation translation = Translation;
 
             SixLaborsRectangle targetBounds = targetImage.Bounds();
 
@@ -242,7 +256,13 @@ namespace DoomWriter
             if(workingRect.Width <= 0 || workingRect.Height <= 0)
                 throw new ImageProcessingException("Cannot draw image because the source image does not overlap the target image");
 
-            var operation = new RowOperation(source.PixelBuffer, targetImage.Frames.RootFrame.PixelBuffer, blender, configuration, workingRect.X, workingRect.Y, workingRect.Width, sourceRectangle.X, sourceRectangle.Y, Opacity);
+            double minLum = 0.0;
+            double maxLum = 0.0;
+
+            if(translation != null)
+                (minLum, maxLum) = ColorTranslator.CalculateLuminanceRange(targetImage);
+
+            var operation = new RowOperation(source.PixelBuffer, targetImage.Frames.RootFrame.PixelBuffer, blender, translation, configuration, workingRect.X, workingRect.Y, workingRect.Width, sourceRectangle.X, sourceRectangle.Y, minLum, maxLum, Opacity);
 
             ParallelRowIterator.IterateRows(
                 configuration,
@@ -252,53 +272,106 @@ namespace DoomWriter
         }
 
         /// <summary>
-        /// A <see langword="struct"/> implementing the draw logic for <see cref="DrawImageAlternateProcessor{TPixelBg, TPixelFg}"/>.
+        /// A <see langword="struct"/> implementing the draw logic for <see cref="DrawTranslatedImageProcessor"/>.
         /// </summary>
         private readonly struct RowOperation : IRowOperation
         {
-            private readonly Buffer2D<TPixelBg> source;
-            private readonly Buffer2D<TPixelFg> target;
-            private readonly PixelBlender<TPixelBg> blender;
+            private readonly Buffer2D<Rgba32> source;
+            private readonly Buffer2D<Rgba32> target;
+            private readonly PixelBlender<Rgba32> blender;
+            private readonly ColorTranslation translation;
             private readonly Configuration configuration;
             private readonly int srcX;
             private readonly int srcY;
             private readonly int width;
             private readonly int targetY;
             private readonly int targetX;
+            private readonly double minLum;
+            private readonly double maxLum;
+            private readonly double diffLum;
             private readonly float opacity;
+
+#pragma warning disable IDE0003 // Remove 'this'
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public RowOperation(
-                Buffer2D<TPixelBg> source,
-                Buffer2D<TPixelFg> target,
-                PixelBlender<TPixelBg> blender,
+                Buffer2D<Rgba32> source,
+                Buffer2D<Rgba32> target,
+                PixelBlender<Rgba32> blender,
+                ColorTranslation translation,
                 Configuration configuration,
                 int srcX,
                 int srcY,
                 int width,
                 int targetX,
                 int targetY,
+                double minLum,
+                double maxLum,
                 float opacity)
             {
                 this.source = source;
                 this.target = target;
                 this.blender = blender;
+                this.translation = translation;
                 this.configuration = configuration;
                 this.srcX = srcX;
                 this.srcY = srcY;
                 this.width = width;
                 this.targetX = targetX;
                 this.targetY = targetY;
+                this.minLum = minLum;
+                this.maxLum = maxLum;
+                this.diffLum = maxLum - minLum;
                 this.opacity = opacity;
             }
+
+#pragma warning restore IDE0003
 
             /// <inheritdoc/>
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Invoke(int y)
             {
-                Span<TPixelBg> background = source.DangerousGetRowSpan(y).Slice(srcX, width);
-                Span<TPixelFg> foreground = target.DangerousGetRowSpan(y - srcY + targetY).Slice(targetX, width);
-                blender.Blend<TPixelFg>(configuration, background, background, foreground, opacity);
+                Span<Rgba32> background = source.DangerousGetRowSpan(y).Slice(srcX, width);
+                Span<Rgba32> foreground = target.DangerousGetRowSpan(y - srcY + targetY).Slice(targetX, width);
+
+                Span<Rgba32> fgClone = new Rgba32[foreground.Length].AsSpan();
+
+                foreground.CopyTo(fgClone);
+                foreground = fgClone;
+
+                if(translation != null && !translation.IsUntranslated)
+                {
+                    for(int i = 0; i < foreground.Length; i++)
+                    {
+                        foreground[i] = Translate(foreground[i]);
+                    }
+                }
+
+                blender.Blend<Rgba32>(configuration, background, background, foreground, opacity);
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private Rgba32 Translate(Rgba32 pixel)
+            {
+                if(pixel.A == 0)
+                    return pixel;
+
+                var luminance = pixel.Luminance();
+                int lum = (int)((luminance - minLum) / diffLum * 256.0);
+                
+                var range = translation.FindRange(lum);
+                if(range == null)
+                    return pixel;
+
+                var start = range.ColorStart;
+                var end = range.ColorEnd;
+
+                int v = ((lum - range.LuminanceStart) << 8) / (range.LuminanceEnd - range.LuminanceStart);
+                int r = ColorTranslator.Lerp(start.R, end.R, v).Clamp(0, 255);
+                int g = ColorTranslator.Lerp(start.G, end.G, v).Clamp(0, 255);
+                int b = ColorTranslator.Lerp(start.B, end.B, v).Clamp(0, 255);
+
+                return new Rgba32((byte)r, (byte)g, (byte)b, pixel.A);
             }
         }
     }

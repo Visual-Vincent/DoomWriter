@@ -62,6 +62,14 @@ namespace DoomWriter
             return a.Equals(b);
         }
 
+        /// <summary>
+        /// Returns a deep copy of the <see cref="TranslationRange"/>.
+        /// </summary>
+        public TranslationRange Clone()
+        {
+            return new TranslationRange(LuminanceStart, LuminanceEnd, ColorStart, ColorEnd);
+        }
+
         /// <inheritdoc/>
         public override bool Equals(object obj)
         {

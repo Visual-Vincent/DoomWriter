@@ -5,7 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.PixelFormats;
 
 using SixLaborsImage = SixLabors.ImageSharp.Image;
 
@@ -60,14 +60,14 @@ namespace DoomWriter
         public static Font ConvertLegacyChart(byte[] chartData)
         {
             Font font = new Font();
-            SixLaborsImage chartImage = null;
+            Image<Rgba32> chartImage = null;
 
             try
             {
                 string[] sections = DecryptLegacyChartData(chartData).Split('·');
                 ThrowHelper.Assert(sections.Length >= 3, new FormatException("Data is not a valid legacy Doom Writer chart"));
 
-                chartImage = SixLaborsImage.Load(Convert.FromBase64String(sections[0]));
+                chartImage = SixLaborsImage.Load<Rgba32>(Convert.FromBase64String(sections[0]));
                 font.Image = new Image(chartImage);
 
                 for(int i = 1; i < sections.Length; i++)

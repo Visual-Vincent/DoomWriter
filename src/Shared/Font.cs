@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
-
+using SixLabors.ImageSharp.PixelFormats;
 using SixLaborsImage = SixLabors.ImageSharp.Image;
 
 namespace DoomWriter
@@ -49,7 +49,8 @@ namespace DoomWriter
         /// <param name="destination">The surface to draw the glyph onto.</param>
         /// <param name="x">The x-coordinate of the top-left corner where to draw the image.</param>
         /// <param name="y">The y-coordinate of the top-left corner where to draw the image.</param>
-        public abstract void DrawGlyph(TGlyph glyph, ISurface<TImage> destination, int x, int y);
+        /// <param name="translation">Optional. Applies the specified color translation when drawing the glyph.</param>
+        public abstract void DrawGlyph(TGlyph glyph, ISurface<TImage> destination, int x, int y, ColorTranslation translation = null);
     }
 
     /// <summary>
@@ -97,9 +98,9 @@ namespace DoomWriter
         }
 
         /// <inheritdoc/>
-        public override void DrawGlyph(Glyph glyph, ISurface<Image> destination, int x, int y)
+        public override void DrawGlyph(Glyph glyph, ISurface<Image> destination, int x, int y, ColorTranslation translation)
         {
-            destination.DrawImage(Image, x, y, new Rectangle(glyph.X, glyph.Y, glyph.Width, glyph.Height));
+            destination.DrawImage(Image, x, y, new Rectangle(glyph.X, glyph.Y, glyph.Width, glyph.Height), translation);
         }
 
         /// <summary>
@@ -202,7 +203,7 @@ namespace DoomWriter
 
                 byte[] imageData = reader.ReadLengthPrefixed(new FormatException("The contents of the stream is not a valid Doom Writer Font file"));
 
-                SixLaborsImage imageSrc = SixLaborsImage.Load(imageData);
+                Image<Rgba32> imageSrc = SixLaborsImage.Load<Rgba32>(imageData);
                 fontData.Image = new Image(imageSrc);
 
                 byte[] glyphs = reader.ReadLengthPrefixed(new FormatException("The contents of the stream is not a valid Doom Writer Font file"));

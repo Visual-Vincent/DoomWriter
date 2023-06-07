@@ -55,6 +55,21 @@ namespace DoomWriter
         }
 
         /// <summary>
+        /// Returns a deep copy of the <see cref="ColorTranslation"/>.
+        /// </summary>
+        public ColorTranslation Clone()
+        {
+            var clone = new ColorTranslation();
+
+            foreach(TranslationRange range in ranges)
+            {
+                clone.ranges.Add(range.Clone());
+            }
+
+            return clone;
+        }
+
+        /// <summary>
         /// Finds the color range that contains the specified luminance value.
         /// </summary>
         /// <param name="luminance">The luminance value whose color range to locate.</param>
