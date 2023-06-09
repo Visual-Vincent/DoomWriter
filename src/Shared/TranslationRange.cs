@@ -70,6 +70,29 @@ namespace DoomWriter
             return new TranslationRange(LuminanceStart, LuminanceEnd, ColorStart, ColorEnd);
         }
 
+        /// <summary>
+        /// Returns whether the color range contains the specified luminance value.
+        /// </summary>
+        /// <param name="luminance">The luminance value to check.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Contains(ushort luminance)
+        {
+            return luminance >= LuminanceStart && luminance <= LuminanceEnd;
+        }
+
+        /// <summary>
+        /// Returns whether the specified luminance range overlaps the current range.
+        /// </summary>
+        /// <param name="range">The range to compare against.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Overlaps(TranslationRange range)
+        {
+            if(range == null)
+                throw new ArgumentNullException(nameof(range));
+
+            return LuminanceStart <= range.LuminanceEnd && LuminanceEnd >= range.LuminanceStart;
+        }
+
         /// <inheritdoc/>
         public override bool Equals(object obj)
         {
@@ -107,29 +130,6 @@ namespace DoomWriter
         public override string ToString()
         {
             return $"{{{LuminanceStart}:{LuminanceEnd}, {ColorStart.ToHexString()}:{ColorEnd.ToHexString()}}}";
-        }
-
-        /// <summary>
-        /// Returns whether the color range contains the specified luminance value.
-        /// </summary>
-        /// <param name="luminance">The luminance value to check.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Contains(ushort luminance)
-        {
-            return luminance >= LuminanceStart && luminance <= LuminanceEnd;
-        }
-
-        /// <summary>
-        /// Returns whether the specified luminance range overlaps the current range.
-        /// </summary>
-        /// <param name="range">The range to compare against.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Overlaps(TranslationRange range)
-        {
-            if(range == null)
-                throw new ArgumentNullException(nameof(range));
-
-            return LuminanceStart <= range.LuminanceEnd && LuminanceEnd >= range.LuminanceStart;
         }
     }
 }

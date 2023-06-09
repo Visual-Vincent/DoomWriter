@@ -69,10 +69,18 @@ namespace DoomWriter
             TransparentColorMode = PngTransparentColorMode.Clear
         };
 
+        private readonly Dictionary<ColorTranslation, Image> translations = new Dictionary<ColorTranslation, Image>();
+
         /// <summary>
         /// Gets the base image containing all the glyphs of the font.
         /// </summary>
         public Image Image { get; internal set; }
+
+        /// <summary>
+        /// Gets the color translations added to the font.
+        /// </summary>
+        /// <remarks>Translations are stored at runtime only, and are not part of the font file stored on disk.</remarks>
+        public IEnumerable<ColorTranslation> Translations => translations.Keys;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Font"/> class.
@@ -98,9 +106,59 @@ namespace DoomWriter
         }
 
         /// <inheritdoc/>
-        public override void DrawGlyph(Glyph glyph, ISurface<Image> destination, int x, int y, ColorTranslation translation)
+        public override void DrawGlyph(Glyph glyph, ISurface<Image> destination, int x, int y, ColorTranslation translation = null)
         {
-            destination.DrawImage(Image, x, y, new Rectangle(glyph.X, glyph.Y, glyph.Width, glyph.Height), translation);
+            var image = Image;
+
+            if(translation != null && !translations.TryGetValue(translation, out image))
+                image = Image;
+
+            destination.DrawImage(image, x, y, new Rectangle(glyph.X, glyph.Y, glyph.Width, glyph.Height));
+        }
+
+        /// <summary>
+        /// Adds the specified color translation to the font.
+        /// </summary>
+        /// <param name="translation">The color translation to add.</param>
+        /// <remarks>Translations are stored at runtime only, and are not part of the font file stored on disk.</remarks>
+        public void AddTranslation(ColorTranslation translation)
+        {
+            if(translation == null)
+                throw new ArgumentNullException(nameof(translation));
+
+            if(HasTranslation(translation))
+                throw new ArgumentException("Translation already exists", nameof(translation));
+
+            translation = translation.Clone();
+            translation.Freeze();
+
+            var image = Image.Clone();
+            ColorTranslator.Translate(image.BaseImage, translation);
+
+            translations.Add(translation, image);
+        }
+
+        /// <summary>
+        /// Returns whether or not the font has the specified color translation.
+        /// </summary>
+        /// <param name="translation">The color translation to look for.</param>
+        /// <remarks>Translations are stored at runtime only, and are not part of the font file stored on disk.</remarks>
+        public bool HasTranslation(ColorTranslation translation)
+        {
+            if(translation == null)
+                throw new ArgumentNullException(nameof(translation));
+
+            return translations.ContainsKey(translation);
+        }
+
+        /// <summary>
+        /// Removes the specified color translation from the font.
+        /// </summary>
+        /// <param name="translation">The color translation to remove.</param>
+        /// <returns><see langword="true"/> if the color translation was successfully found and removed, otherwise <see langword="false"/>.</returns>
+        public bool RemoveTranslation(ColorTranslation translation)
+        {
+            return translations.Remove(translation);
         }
 
         /// <summary>
@@ -259,6 +317,13 @@ namespace DoomWriter
                 {
                     // Dispose managed resources
                     Image?.Dispose();
+
+                    foreach(var kvp in translations)
+                    {
+                        kvp.Value.Dispose();
+                    }
+
+                    translations.Clear();
                 }
 
                 // Free unmanaged resources
