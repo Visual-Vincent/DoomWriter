@@ -334,13 +334,13 @@ namespace DoomWriter
                 Span<Rgba32> background = source.DangerousGetRowSpan(y).Slice(srcX, width);
                 Span<Rgba32> foreground = target.DangerousGetRowSpan(y - srcY + targetY).Slice(targetX, width);
 
-                Span<Rgba32> fgClone = new Rgba32[foreground.Length].AsSpan();
-
-                foreground.CopyTo(fgClone);
-                foreground = fgClone;
-
                 if(translation != null && !translation.IsUntranslated)
                 {
+                    Span<Rgba32> fgClone = new Rgba32[foreground.Length].AsSpan();
+
+                    foreground.CopyTo(fgClone);
+                    foreground = fgClone;
+
                     for(int i = 0; i < foreground.Length; i++)
                     {
                         foreground[i] = Translate(foreground[i]);
