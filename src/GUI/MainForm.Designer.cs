@@ -78,6 +78,7 @@ namespace DoomWriter.GUI
             // SaveAsMenuItem
             // 
             this.SaveAsMenuItem.Index = 0;
+            this.SaveAsMenuItem.Shortcut = System.Windows.Forms.Shortcut.CtrlS;
             this.SaveAsMenuItem.Text = "&Save as...";
             this.SaveAsMenuItem.Click += new System.EventHandler(this.SaveAsMenuItem_Click);
             // 
@@ -98,6 +99,7 @@ namespace DoomWriter.GUI
             // 
             this.AboutMenuItem.Index = 0;
             this.AboutMenuItem.Text = "&About";
+            this.AboutMenuItem.Click += new System.EventHandler(this.AboutMenuItem_Click);
             // 
             // MainStatusStrip
             // 

@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Tga;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
@@ -236,31 +237,31 @@ namespace DoomWriter.GUI
                                 image.SaveAsBmp(ImageSaveFileDialog.FileName, new BmpEncoder() { BitsPerPixel = BmpBitsPerPixel.Pixel32, SupportTransparency = true });
                                 break;
 
-                            case ImageFilters.JPEG:
-                                using(var newImage = new Image<Rgba32>(image.Width, image.Height, Color.Cyan))
-                                {
-                                    newImage.Mutate(c => { c.DrawImage(image, 1.0f); });
-                                    newImage.SaveAsJpeg(ImageSaveFileDialog.FileName, new JpegEncoder() { Quality = 100 });
-                                }
-                                break;
-
                             case ImageFilters.GIF:
                                 image.SaveAsGif(ImageSaveFileDialog.FileName);
                                 break;
 
+                            case ImageFilters.TGA:
+                                image.SaveAsTga(ImageSaveFileDialog.FileName, new TgaEncoder() { BitsPerPixel = TgaBitsPerPixel.Pixel32 });
+                                break;
+
+                            // Image formats that don't support transparency
+                            case ImageFilters.JPEG:
                             case ImageFilters.TIFF:
                                 using(var newImage = new Image<Rgba32>(image.Width, image.Height, Color.Cyan))
                                 {
                                     newImage.Mutate(c => { c.DrawImage(image, 1.0f); });
-                                    newImage.SaveAsTiff(ImageSaveFileDialog.FileName);
-                                }
-                                break;
 
-                            case ImageFilters.TGA:
-                                using(var newImage = new Image<Rgba32>(image.Width, image.Height, Color.Cyan))
-                                {
-                                    newImage.Mutate(c => { c.DrawImage(image, 1.0f); });
-                                    newImage.SaveAsTga(ImageSaveFileDialog.FileName);
+                                    switch((ImageFilters)ImageSaveFileDialog.FilterIndex)
+                                    {
+                                        case ImageFilters.JPEG:
+                                            newImage.SaveAsJpeg(ImageSaveFileDialog.FileName, new JpegEncoder() { Quality = 100 });
+                                            break;
+
+                                        case ImageFilters.TIFF:
+                                            newImage.SaveAsTiff(ImageSaveFileDialog.FileName);
+                                            break;
+                                    }
                                 }
                                 break;
 
@@ -282,6 +283,14 @@ namespace DoomWriter.GUI
 #pragma warning disable IDE0003 // Remove 'this'
             this.Close();
 #pragma warning restore IDE0003
+        }
+
+        private void AboutMenuItem_Click(object sender, EventArgs e)
+        {
+            using(var aboutBox = new MainAboutBox())
+            {
+                aboutBox.ShowDialog();
+            }
         }
 
         private enum ImageFilters
