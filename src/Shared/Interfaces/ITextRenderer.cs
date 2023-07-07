@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace DoomWriter
 {
@@ -17,5 +18,12 @@ namespace DoomWriter
         /// <param name="text">The text to render.</param>
         /// <param name="font">The font to use to render the text.</param>
         TImage Render(string text, Font<TImage, TGlyph> font);
+
+        /// <summary>
+        /// Asynchronously renders the specified text as an image using the specified bitmap font.
+        /// </summary>
+        /// <param name="text">The text to render.</param>
+        /// <param name="font">The font to use to render the text.</param>
+        Task<TImage> RenderAsync(string text, Font<TImage, TGlyph> font);
     }
 }

@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace DoomWriter
@@ -11,7 +12,7 @@ namespace DoomWriter
     /// </summary>
     public class TextRenderer : TextRendererBase, ITextRenderer<Image, Glyph>
     {
-        private static readonly Font DefaultFont = LoadDefaultFont<Font>();
+        private readonly Font DefaultFont = LoadDefaultFont<Font>();
 
         private readonly Dictionary<string, ColorTranslation> translations = new Dictionary<string, ColorTranslation>();
 
@@ -30,6 +31,7 @@ namespace DoomWriter
         {
             foreach(var kvp in translationsTable)
             {
+                DefaultFont.AddTranslation(kvp.Value);
                 translations.Add(kvp.Key, kvp.Value.Clone());
             }
         }
@@ -44,7 +46,7 @@ namespace DoomWriter
         public Image Render(string text, Font<Image, Glyph> font)
         {
             var measurement = Measure(text, font);
-            var surface = new ImageSurface<Rgba32>(measurement.Width, measurement.Height);
+            var surface = new ImageSurface<Rgba32>(measurement.Width.Clamp(1, int.MaxValue), measurement.Height.Clamp(1, int.MaxValue));
 
             int y = 0;
 
@@ -59,6 +61,12 @@ namespace DoomWriter
             }
 
             return new Image(surface.GetImage());
+        }
+
+        /// <inheritdoc/>
+        public async Task<Image> RenderAsync(string text, Font<Image, Glyph> font)
+        {
+            return await Task.Run(() => Render(text, font));
         }
 
         private TextMeasurementResult Measure(string text, Font<Image, Glyph> font)
