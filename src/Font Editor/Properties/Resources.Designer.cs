@@ -71,11 +71,51 @@ namespace DoomWriter.FontEditor.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] CursorHandGrabbing {
+            get {
+                object obj = ResourceManager.GetObject("CursorHandGrabbing", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] CursorHandOpen {
+            get {
+                object obj = ResourceManager.GetObject("CursorHandOpen", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap MagnifyingGlass {
             get {
                 object obj = ResourceManager.GetObject("MagnifyingGlass", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Pan {
+            get {
+                object obj = ResourceManager.GetObject("Pan", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Select {
+            get {
+                object obj = ResourceManager.GetObject("Select", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

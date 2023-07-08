@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -7,6 +8,9 @@ namespace DoomWriter.FontEditor
 {
     public partial class MainForm : Form
     {
+        private static readonly Cursor HandOpen     = CursorHelper.FromByteArray(Properties.Resources.CursorHandOpen);
+        private static readonly Cursor HandGrabbing = CursorHelper.FromByteArray(Properties.Resources.CursorHandGrabbing);
+
         private static readonly HashSet<Keys> AcceptedNumericKeyCodes = new HashSet<Keys>() {
             Keys.Enter, Keys.Back, Keys.Delete, Keys.Home, Keys.End, Keys.Left, Keys.Right, Keys.Up, Keys.Down,
             Keys.D0, Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9,
@@ -14,10 +18,41 @@ namespace DoomWriter.FontEditor
             Keys.NumPad6, Keys.NumPad7, Keys.NumPad8, Keys.NumPad9
         };
 
+        private EditMode editMode;
+        private Point ImageMouseLastPosition;
+        private Point ImageMouseClickPosition;
+
         public MainForm()
         {
             InitializeComponent();
             MainPictureBox_ImageChanged(MainPictureBox, EventArgs.Empty);
+        }
+
+        private void SetEditMode(EditMode mode)
+        {
+            editMode = mode;
+
+            foreach(var item in EditingToolStrip.Items.OfType<ToolStripButton>())
+            {
+                item.Checked = false;
+            }
+
+            MainPictureBox.Cursor = Cursors.Default;
+
+            switch(mode)
+            {
+                case EditMode.CharacterSelect:
+                    CharacterSelectionToolStripButton.Checked = true;
+                    MainPictureBox.Cursor = Cursors.Cross;
+                    break;
+
+                case EditMode.Pan:
+                default:
+                    editMode = EditMode.Pan;
+                    PanToolStripButton.Checked = true;
+                    MainPictureBox.Cursor = HandOpen;
+                    break;
+            }
         }
 
         private void SetImageZoom(double ratio)
@@ -65,6 +100,44 @@ namespace DoomWriter.FontEditor
             ImageContainerTableLayoutPanel.Visible = hasImage;
             InfoLabel.Visible = !hasImage;
             ZoomToolStripDropDownButton.Enabled = hasImage;
+
+            foreach(var item in EditingToolStrip.Items.OfType<ToolStripItem>())
+            {
+                item.Enabled = hasImage;
+            }
+
+            SetEditMode(EditMode.Pan);
+        }
+
+        private void MainPictureBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Middle || (editMode == EditMode.Pan && e.Button == MouseButtons.Left))
+            {
+                if(editMode == EditMode.Pan)
+                    MainPictureBox.Cursor = HandGrabbing;
+
+                ImageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
+                ImageMouseClickPosition = e.Location;
+            }
+        }
+
+        private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Middle || (editMode == EditMode.Pan && e.Button == MouseButtons.Left))
+            {
+                ImageContainerTableLayoutPanel.AutoScrollPosition = new Point(
+                    ImageMouseClickPosition.X - e.X - ImageMouseLastPosition.X,
+                    ImageMouseClickPosition.Y - e.Y - ImageMouseLastPosition.Y
+                );
+
+                ImageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
+            }
+        }
+
+        private void MainPictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            if(editMode == EditMode.Pan)
+                MainPictureBox.Cursor = HandOpen;
         }
 
         private void MainPictureBox_ZoomChanged(object sender, EventArgs e)
@@ -153,6 +226,64 @@ namespace DoomWriter.FontEditor
             e.Handled = true;
 
             ZoomLevelToolStripTextBox_LostFocus(sender, e);
+        }
+
+        private void NewMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void OpenMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void SaveMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void SaveAsMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void SetFontImageMenuItem_Click(object sender, EventArgs e)
+        {
+            if(MainPictureBox.Image != null)
+            {
+                if(MessageBox.Show("Are you sure you want to replace the current font image?", Application.ProductName, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                    return;
+            }
+
+            if(ImageImportFileDialog.ShowDialog() != DialogResult.OK)
+                return;
+
+            try
+            {
+                MainPictureBox.Image = Image.FromFile(ImageImportFileDialog.FileName);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Failed to load image:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ExitMenuItem_Click(object sender, EventArgs e)
+        {
+#pragma warning disable IDE0003 // Remove 'this'
+            this.Close();
+#pragma warning restore IDE0003
+        }
+
+        private void PanToolStripButton_Click(object sender, EventArgs e)
+        {
+            SetEditMode(EditMode.Pan);
+        }
+
+        private void CharacterSelectionToolStripButton_Click(object sender, EventArgs e)
+        {
+            SetEditMode(EditMode.CharacterSelect);
         }
     }
 }
