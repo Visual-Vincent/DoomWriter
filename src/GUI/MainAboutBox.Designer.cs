@@ -34,7 +34,7 @@
             this.VersionLabel = new System.Windows.Forms.Label();
             this.CopyrightLabel = new System.Windows.Forms.Label();
             this.CompanyNameLabel = new System.Windows.Forms.Label();
-            this.DescriptionTextBox = new System.Windows.Forms.TextBox();
+            this.CreditsTextBox = new System.Windows.Forms.TextBox();
             this.OKButton = new System.Windows.Forms.Button();
             this.MainTabControl = new System.Windows.Forms.TabControl();
             this.DoomWriterTabPage = new System.Windows.Forms.TabPage();
@@ -63,7 +63,7 @@
             this.DoomWriterTableLayoutPanel.Controls.Add(this.VersionLabel, 1, 1);
             this.DoomWriterTableLayoutPanel.Controls.Add(this.CopyrightLabel, 1, 2);
             this.DoomWriterTableLayoutPanel.Controls.Add(this.CompanyNameLabel, 1, 3);
-            this.DoomWriterTableLayoutPanel.Controls.Add(this.DescriptionTextBox, 1, 4);
+            this.DoomWriterTableLayoutPanel.Controls.Add(this.CreditsTextBox, 1, 4);
             this.DoomWriterTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.DoomWriterTableLayoutPanel.Location = new System.Drawing.Point(3, 3);
             this.DoomWriterTableLayoutPanel.Margin = new System.Windows.Forms.Padding(0);
@@ -138,22 +138,20 @@
             this.CompanyNameLabel.Text = "Company Name";
             this.CompanyNameLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
-            // DescriptionTextBox
+            // CreditsTextBox
             // 
-            this.DescriptionTextBox.BackColor = System.Drawing.SystemColors.Window;
-            this.DescriptionTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DescriptionTextBox.Location = new System.Drawing.Point(144, 95);
-            this.DescriptionTextBox.Margin = new System.Windows.Forms.Padding(6, 3, 3, 3);
-            this.DescriptionTextBox.Multiline = true;
-            this.DescriptionTextBox.Name = "DescriptionTextBox";
-            this.DescriptionTextBox.ReadOnly = true;
-            this.DescriptionTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.DescriptionTextBox.Size = new System.Drawing.Size(335, 161);
-            this.DescriptionTextBox.TabIndex = 23;
-            this.DescriptionTextBox.TabStop = false;
-            this.DescriptionTextBox.Text = "DOOM is a registered trademark of id Software, Inc.\r\n\r\nDoom Writer was created by" +
-    ":\r\n    Visual Vincent\r\n\r\nPrimary font (\"bigfont\"):\r\n    id Software\r\n\r\nSmall fon" +
-    "t (\"smallfont\"):\r\n    id Software";
+            this.CreditsTextBox.BackColor = System.Drawing.SystemColors.Window;
+            this.CreditsTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.CreditsTextBox.Location = new System.Drawing.Point(144, 95);
+            this.CreditsTextBox.Margin = new System.Windows.Forms.Padding(6, 3, 3, 3);
+            this.CreditsTextBox.Multiline = true;
+            this.CreditsTextBox.Name = "CreditsTextBox";
+            this.CreditsTextBox.ReadOnly = true;
+            this.CreditsTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.CreditsTextBox.Size = new System.Drawing.Size(335, 161);
+            this.CreditsTextBox.TabIndex = 23;
+            this.CreditsTextBox.TabStop = false;
+            this.CreditsTextBox.Text = resources.GetString("CreditsTextBox.Text");
             // 
             // OKButton
             // 
@@ -309,7 +307,7 @@
         private System.Windows.Forms.Label VersionLabel;
         private System.Windows.Forms.Label CopyrightLabel;
         private System.Windows.Forms.Label CompanyNameLabel;
-        private System.Windows.Forms.TextBox DescriptionTextBox;
+        private System.Windows.Forms.TextBox CreditsTextBox;
         private System.Windows.Forms.Button OKButton;
         private System.Windows.Forms.TabControl MainTabControl;
         private System.Windows.Forms.TabPage DoomWriterTabPage;
