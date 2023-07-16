@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace DoomWriter.FontEditor
+namespace FontEditor
 {
     internal static class Program
     {

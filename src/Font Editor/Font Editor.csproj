@@ -5,7 +5,7 @@
     <TargetFramework>net472</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>FontEditor</AssemblyName>
-    <RootNamespace>DoomWriter.FontEditor</RootNamespace>
+    <RootNamespace>FontEditor</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
@@ -15,6 +15,10 @@
 
   <ItemGroup>
     <Compile Include="..\AssemblyInfo.Shared.cs" Link="AssemblyInfo.Shared.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>

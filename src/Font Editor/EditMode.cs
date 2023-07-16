@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace DoomWriter.FontEditor
+namespace FontEditor
 {
     public enum EditMode
     {
-        Pan = 0,
+        Pan = 1,
         CharacterSelect
     }
 }

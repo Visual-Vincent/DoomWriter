@@ -2,7 +2,7 @@
 using System.IO;
 using System.Windows.Forms;
 
-namespace DoomWriter.FontEditor
+namespace FontEditor
 {
     /// <summary>
     /// A helper class for managing cursors.

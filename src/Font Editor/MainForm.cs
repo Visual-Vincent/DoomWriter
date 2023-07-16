@@ -1,15 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
+using DoomWriter;
 
-namespace DoomWriter.FontEditor
+using Image = System.Drawing.Image;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
+using Rectangle = System.Drawing.Rectangle;
+
+#pragma warning disable IDE0003 // Remove 'this'
+
+namespace FontEditor
 {
     public partial class MainForm : Form
     {
         private static readonly Cursor HandOpen     = CursorHelper.FromByteArray(Properties.Resources.CursorHandOpen);
         private static readonly Cursor HandGrabbing = CursorHelper.FromByteArray(Properties.Resources.CursorHandGrabbing);
+
+        private static readonly Pen   SelectionPen   = new Pen(Color.Black, 1.0f) { DashStyle = DashStyle.Dash };
+        private static readonly Brush SelectionBrush = new SolidBrush(Color.FromArgb(127, 118, 184, 242));
 
         private static readonly HashSet<Keys> AcceptedNumericKeyCodes = new HashSet<Keys>() {
             Keys.Enter, Keys.Back, Keys.Delete, Keys.Home, Keys.End, Keys.Left, Keys.Right, Keys.Up, Keys.Down,
@@ -19,17 +31,26 @@ namespace DoomWriter.FontEditor
         };
 
         private EditMode editMode;
-        private Point ImageMouseLastPosition;
-        private Point ImageMouseClickPosition;
+        private Point imageMouseLastPosition;
+        private Point imageMouseClickPosition;
+
+        private bool selecting = false;
+        private Rectangle selectionRectangle;
+
+        private CharacterMappingControl characterMappingsControl = new CharacterMappingControl() { Dock = DockStyle.Fill };
 
         public MainForm()
         {
             InitializeComponent();
+            StatusLabel.Text = "";
             MainPictureBox_ImageChanged(MainPictureBox, EventArgs.Empty);
         }
 
         private void SetEditMode(EditMode mode)
         {
+            if(editMode == mode)
+                return;
+
             editMode = mode;
 
             foreach(var item in EditingToolStrip.Items.OfType<ToolStripButton>())
@@ -37,13 +58,26 @@ namespace DoomWriter.FontEditor
                 item.Checked = false;
             }
 
+            if(WindowState != FormWindowState.Maximized)
+                Width -= MainSplitContainer.Panel2.Width;
+
             MainPictureBox.Cursor = Cursors.Default;
+            MainSplitContainer.Panel2Collapsed = true;
+            MainSplitContainer.Panel2.Controls.Clear();
 
             switch(mode)
             {
                 case EditMode.CharacterSelect:
                     CharacterSelectionToolStripButton.Checked = true;
                     MainPictureBox.Cursor = Cursors.Cross;
+
+                    MainSplitContainer.SplitterDistance = ClientSize.Width - characterMappingsControl.Width - MainSplitContainer.SplitterWidth;
+                    MainSplitContainer.Panel2Collapsed = false;
+                    MainSplitContainer.Panel2.Controls.Add(characterMappingsControl);
+                    MainSplitContainer.Refresh();
+
+                    if(WindowState != FormWindowState.Maximized)
+                        Width += MainSplitContainer.Panel2.Width;
                     break;
 
                 case EditMode.Pan:
@@ -67,9 +101,7 @@ namespace DoomWriter.FontEditor
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-#pragma warning disable IDE0003 // Remove 'this'
             this.Menu = MainFormMenu;
-#pragma warning restore IDE0003
 
             ToolStripManager.RenderMode = ToolStripManagerRenderMode.System;
             ToolStripManager.LoadSettings(this);
@@ -116,8 +148,13 @@ namespace DoomWriter.FontEditor
                 if(editMode == EditMode.Pan)
                     MainPictureBox.Cursor = HandGrabbing;
 
-                ImageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
-                ImageMouseClickPosition = e.Location;
+                imageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
+                imageMouseClickPosition = e.Location;
+            }
+            else if(editMode == EditMode.CharacterSelect && e.Button == MouseButtons.Left)
+            {
+                selecting = true;
+                imageMouseClickPosition = e.Location;
             }
         }
 
@@ -126,18 +163,88 @@ namespace DoomWriter.FontEditor
             if(e.Button == MouseButtons.Middle || (editMode == EditMode.Pan && e.Button == MouseButtons.Left))
             {
                 ImageContainerTableLayoutPanel.AutoScrollPosition = new Point(
-                    ImageMouseClickPosition.X - e.X - ImageMouseLastPosition.X,
-                    ImageMouseClickPosition.Y - e.Y - ImageMouseLastPosition.Y
+                    imageMouseClickPosition.X - e.X - imageMouseLastPosition.X,
+                    imageMouseClickPosition.Y - e.Y - imageMouseLastPosition.Y
                 );
 
-                ImageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
+                imageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
+            }
+            else if(editMode == EditMode.CharacterSelect && selecting)
+            {
+                double zoomLevel = MainPictureBox.Zoom;
+
+                Point point = new Point(
+                    (int)(Math.Floor(e.X / zoomLevel) * zoomLevel),
+                    (int)(Math.Floor(e.Y / zoomLevel) * zoomLevel)
+                );
+
+                Point clickPoint = new Point(
+                    (int)(Math.Floor(imageMouseClickPosition.X / zoomLevel) * zoomLevel),
+                    (int)(Math.Floor(imageMouseClickPosition.Y / zoomLevel) * zoomLevel)
+                );
+
+                int x = clickPoint.X <= point.X ? clickPoint.X : point.X;
+                int y = clickPoint.Y <= point.Y ? clickPoint.Y : point.Y;
+                int w = clickPoint.X <= point.X ? point.X - clickPoint.X : clickPoint.X - point.X;
+                int h = clickPoint.Y <= point.Y ? point.Y - clickPoint.Y : clickPoint.Y - point.Y;
+
+                x = (int)Math.Round(x / zoomLevel);
+                y = (int)Math.Round(y / zoomLevel);
+                w = (int)Math.Round(w / zoomLevel) + 1;
+                h = (int)Math.Round(h / zoomLevel) + 1;
+
+                StatusLabel.Text = $"Origin: ({x}, {y}). Size: {w} x {h}";
+                MainStatusStrip.Refresh();
+
+                selectionRectangle = new Rectangle(x, y, w, h);
+                MainPictureBox.Invalidate();
             }
         }
 
         private void MainPictureBox_MouseUp(object sender, MouseEventArgs e)
         {
-            if(editMode == EditMode.Pan)
-                MainPictureBox.Cursor = HandOpen;
+            switch(editMode)
+            {
+                case EditMode.Pan:
+                    MainPictureBox.Cursor = HandOpen;
+                    break;
+
+                case EditMode.CharacterSelect:
+                    if(e.Button != MouseButtons.Left)
+                        break;
+
+                    StatusLabel.Text = "";
+                    MainPictureBox.Invalidate();
+
+                    var rect = selectionRectangle.Clamp(new Rectangle(Point.Empty, MainPictureBox.Image.Size));
+
+                    characterMappingsControl.SetCurrentCharacterBounds(rect, true);
+                    break;
+            }
+
+            selecting = false;
+        }
+
+        private void MainPictureBox_Paint(object sender, PaintEventArgs e)
+        {
+            if(selecting)
+            {
+                float zoomLevel = (float)MainPictureBox.Zoom;
+
+                e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
+                e.Graphics.FillRectangle(SelectionBrush,
+                    zoomLevel * selectionRectangle.X + 0.5f,
+                    zoomLevel * selectionRectangle.Y + 0.5f,
+                    zoomLevel * selectionRectangle.Width - 0.5f,
+                    zoomLevel * selectionRectangle.Height - 0.5f
+                );
+                e.Graphics.DrawRectangle(SelectionPen, 
+                    zoomLevel * selectionRectangle.X + 0.5f,
+                    zoomLevel * selectionRectangle.Y + 0.5f,
+                    zoomLevel * selectionRectangle.Width - 0.5f,
+                    zoomLevel * selectionRectangle.Height - 0.5f
+                );
+            }
         }
 
         private void MainPictureBox_ZoomChanged(object sender, EventArgs e)
@@ -271,9 +378,7 @@ namespace DoomWriter.FontEditor
 
         private void ExitMenuItem_Click(object sender, EventArgs e)
         {
-#pragma warning disable IDE0003 // Remove 'this'
             this.Close();
-#pragma warning restore IDE0003
         }
 
         private void PanToolStripButton_Click(object sender, EventArgs e)
@@ -287,3 +392,5 @@ namespace DoomWriter.FontEditor
         }
     }
 }
+
+#pragma warning restore IDE0003 // Remove 'this'

@@ -1,4 +1,4 @@
-﻿namespace DoomWriter.FontEditor
+﻿namespace FontEditor
 {
     partial class MainForm
     {
@@ -43,6 +43,7 @@
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.MainToolStripContainer = new System.Windows.Forms.ToolStripContainer();
             this.ImageContainerTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.MainPictureBox = new FontEditor.ZoomablePictureBox();
             this.InfoLabel = new System.Windows.Forms.Label();
             this.FileToolStrip = new System.Windows.Forms.ToolStrip();
             this.NewToolStripButton = new System.Windows.Forms.ToolStripButton();
@@ -57,13 +58,13 @@
             this.EditingToolStrip = new System.Windows.Forms.ToolStrip();
             this.PanToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.CharacterSelectionToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.MainStatusStrip = new System.Windows.Forms.StatusStrip();
+            this.FontFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.ImageImportFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.ToolStripStatusFiller = new System.Windows.Forms.ToolStripStatusLabel();
             this.ZoomToolStripDropDownButton = new System.Windows.Forms.ToolStripSplitButton();
             this.ZoomLevelToolStripTextBox = new System.Windows.Forms.ToolStripTextBox();
-            this.FontFileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.ImageImportFileDialog = new System.Windows.Forms.OpenFileDialog();
-            this.MainPictureBox = new DoomWriter.FontEditor.ZoomablePictureBox();
+            this.MainStatusStrip = new System.Windows.Forms.StatusStrip();
+            this.StatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).BeginInit();
             this.MainSplitContainer.Panel1.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
@@ -124,7 +125,7 @@
             // SetFontImageMenuItem
             // 
             this.SetFontImageMenuItem.Index = 4;
-            this.SetFontImageMenuItem.Text = "Set Font Image...";
+            this.SetFontImageMenuItem.Text = "Set Font &Image...";
             this.SetFontImageMenuItem.Click += new System.EventHandler(this.SetFontImageMenuItem_Click);
             // 
             // ExitMenuItem
@@ -155,9 +156,13 @@
             // MainSplitContainer.Panel1
             // 
             this.MainSplitContainer.Panel1.Controls.Add(this.MainToolStripContainer);
+            // 
+            // MainSplitContainer.Panel2
+            // 
+            this.MainSplitContainer.Panel2.AutoScroll = true;
             this.MainSplitContainer.Panel2Collapsed = true;
             this.MainSplitContainer.Size = new System.Drawing.Size(784, 540);
-            this.MainSplitContainer.SplitterDistance = 539;
+            this.MainSplitContainer.SplitterDistance = 755;
             this.MainSplitContainer.TabIndex = 0;
             // 
             // MainToolStripContainer
@@ -208,6 +213,23 @@
             this.ImageContainerTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.ImageContainerTableLayoutPanel.Size = new System.Drawing.Size(784, 513);
             this.ImageContainerTableLayoutPanel.TabIndex = 0;
+            // 
+            // MainPictureBox
+            // 
+            this.MainPictureBox.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.MainPictureBox.BackgroundImage = global::FontEditor.Properties.Resources.Checkerboard;
+            this.MainPictureBox.Location = new System.Drawing.Point(384, 248);
+            this.MainPictureBox.Margin = new System.Windows.Forms.Padding(6);
+            this.MainPictureBox.Name = "MainPictureBox";
+            this.MainPictureBox.Size = new System.Drawing.Size(16, 16);
+            this.MainPictureBox.TabIndex = 0;
+            this.MainPictureBox.Text = "zoomablePictureBox1";
+            this.MainPictureBox.ImageChanged += new System.EventHandler(this.MainPictureBox_ImageChanged);
+            this.MainPictureBox.ZoomChanged += new System.EventHandler(this.MainPictureBox_ZoomChanged);
+            this.MainPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.MainPictureBox_Paint);
+            this.MainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseDown);
+            this.MainPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseMove);
+            this.MainPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseUp);
             // 
             // InfoLabel
             // 
@@ -328,13 +350,13 @@
             this.EditingToolStrip.Location = new System.Drawing.Point(195, 0);
             this.EditingToolStrip.Name = "EditingToolStrip";
             this.EditingToolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.EditingToolStrip.Size = new System.Drawing.Size(60, 27);
+            this.EditingToolStrip.Size = new System.Drawing.Size(91, 27);
             this.EditingToolStrip.TabIndex = 1;
             // 
             // PanToolStripButton
             // 
             this.PanToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.PanToolStripButton.Image = global::DoomWriter.FontEditor.Properties.Resources.Pan;
+            this.PanToolStripButton.Image = global::FontEditor.Properties.Resources.Pan;
             this.PanToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.PanToolStripButton.Name = "PanToolStripButton";
             this.PanToolStripButton.Padding = new System.Windows.Forms.Padding(2);
@@ -345,7 +367,7 @@
             // CharacterSelectionToolStripButton
             // 
             this.CharacterSelectionToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.CharacterSelectionToolStripButton.Image = global::DoomWriter.FontEditor.Properties.Resources.Select;
+            this.CharacterSelectionToolStripButton.Image = global::FontEditor.Properties.Resources.Select;
             this.CharacterSelectionToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.CharacterSelectionToolStripButton.Name = "CharacterSelectionToolStripButton";
             this.CharacterSelectionToolStripButton.Padding = new System.Windows.Forms.Padding(2);
@@ -353,20 +375,21 @@
             this.CharacterSelectionToolStripButton.Text = "Character selection";
             this.CharacterSelectionToolStripButton.Click += new System.EventHandler(this.CharacterSelectionToolStripButton_Click);
             // 
-            // MainStatusStrip
+            // FontFileDialog
             // 
-            this.MainStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ToolStripStatusFiller,
-            this.ZoomToolStripDropDownButton});
-            this.MainStatusStrip.Location = new System.Drawing.Point(0, 540);
-            this.MainStatusStrip.Name = "MainStatusStrip";
-            this.MainStatusStrip.Size = new System.Drawing.Size(784, 22);
-            this.MainStatusStrip.TabIndex = 1;
+            this.FontFileDialog.Filter = "Doom Writer fonts (*.dwfont)|*.dwfont";
+            this.FontFileDialog.RestoreDirectory = true;
+            // 
+            // ImageImportFileDialog
+            // 
+            this.ImageImportFileDialog.Filter = "Images files (*.png; *.bmp; *.jpg; *.jpeg; *.gif; *.tif; *.tiff; *.tga)|*.png;*.b" +
+    "mp;*.jpg;*.jpeg;*.gif;*.tif;*.tiff;*.tga";
+            this.ImageImportFileDialog.RestoreDirectory = true;
             // 
             // ToolStripStatusFiller
             // 
             this.ToolStripStatusFiller.Name = "ToolStripStatusFiller";
-            this.ToolStripStatusFiller.Size = new System.Drawing.Size(702, 17);
+            this.ToolStripStatusFiller.Size = new System.Drawing.Size(663, 17);
             this.ToolStripStatusFiller.Spring = true;
             // 
             // ZoomToolStripDropDownButton
@@ -374,7 +397,7 @@
             this.ZoomToolStripDropDownButton.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
             this.ZoomToolStripDropDownButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ZoomLevelToolStripTextBox});
-            this.ZoomToolStripDropDownButton.Image = global::DoomWriter.FontEditor.Properties.Resources.MagnifyingGlass;
+            this.ZoomToolStripDropDownButton.Image = global::FontEditor.Properties.Resources.MagnifyingGlass;
             this.ZoomToolStripDropDownButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.ZoomToolStripDropDownButton.Name = "ZoomToolStripDropDownButton";
             this.ZoomToolStripDropDownButton.Size = new System.Drawing.Size(67, 20);
@@ -391,32 +414,22 @@
             this.ZoomLevelToolStripTextBox.LostFocus += new System.EventHandler(this.ZoomLevelToolStripTextBox_LostFocus);
             this.ZoomLevelToolStripTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ZoomLevelToolStripTextBox_KeyDown);
             // 
-            // FontFileDialog
+            // MainStatusStrip
             // 
-            this.FontFileDialog.Filter = "Doom Writer fonts (*.dwfont)|*.dwfont";
-            this.FontFileDialog.RestoreDirectory = true;
+            this.MainStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.StatusLabel,
+            this.ToolStripStatusFiller,
+            this.ZoomToolStripDropDownButton});
+            this.MainStatusStrip.Location = new System.Drawing.Point(0, 540);
+            this.MainStatusStrip.Name = "MainStatusStrip";
+            this.MainStatusStrip.Size = new System.Drawing.Size(784, 22);
+            this.MainStatusStrip.TabIndex = 1;
             // 
-            // ImageImportFileDialog
+            // StatusLabel
             // 
-            this.ImageImportFileDialog.Filter = "Images files (*.png; *.bmp; *.jpg; *.jpeg; *.gif; *.tif; *.tiff; *.tga)|*.png;*.b" +
-    "mp;*.jpg;*.jpeg;*.gif;*.tif;*.tiff;*.tga";
-            this.ImageImportFileDialog.RestoreDirectory = true;
-            // 
-            // MainPictureBox
-            // 
-            this.MainPictureBox.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.MainPictureBox.BackgroundImage = global::DoomWriter.FontEditor.Properties.Resources.Checkerboard;
-            this.MainPictureBox.Location = new System.Drawing.Point(384, 248);
-            this.MainPictureBox.Margin = new System.Windows.Forms.Padding(6);
-            this.MainPictureBox.Name = "MainPictureBox";
-            this.MainPictureBox.Size = new System.Drawing.Size(16, 16);
-            this.MainPictureBox.TabIndex = 0;
-            this.MainPictureBox.Text = "zoomablePictureBox1";
-            this.MainPictureBox.ImageChanged += new System.EventHandler(this.MainPictureBox_ImageChanged);
-            this.MainPictureBox.ZoomChanged += new System.EventHandler(this.MainPictureBox_ZoomChanged);
-            this.MainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseDown);
-            this.MainPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseMove);
-            this.MainPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseUp);
+            this.StatusLabel.Name = "StatusLabel";
+            this.StatusLabel.Size = new System.Drawing.Size(39, 17);
+            this.StatusLabel.Text = "Status";
             // 
             // MainForm
             // 
@@ -477,10 +490,6 @@
         private System.Windows.Forms.ToolStripButton HelpToolStripButton;
         private System.Windows.Forms.TableLayoutPanel ImageContainerTableLayoutPanel;
         private ZoomablePictureBox MainPictureBox;
-        private System.Windows.Forms.StatusStrip MainStatusStrip;
-        private System.Windows.Forms.ToolStripStatusLabel ToolStripStatusFiller;
-        private System.Windows.Forms.ToolStripSplitButton ZoomToolStripDropDownButton;
-        private System.Windows.Forms.ToolStripTextBox ZoomLevelToolStripTextBox;
         private System.Windows.Forms.Label InfoLabel;
         private System.Windows.Forms.MenuItem SetFontImageMenuItem;
         private System.Windows.Forms.OpenFileDialog FontFileDialog;
@@ -488,5 +497,10 @@
         private System.Windows.Forms.ToolStrip EditingToolStrip;
         private System.Windows.Forms.ToolStripButton PanToolStripButton;
         private System.Windows.Forms.ToolStripButton CharacterSelectionToolStripButton;
+        private System.Windows.Forms.ToolStripStatusLabel ToolStripStatusFiller;
+        private System.Windows.Forms.ToolStripSplitButton ZoomToolStripDropDownButton;
+        private System.Windows.Forms.ToolStripTextBox ZoomLevelToolStripTextBox;
+        private System.Windows.Forms.StatusStrip MainStatusStrip;
+        private System.Windows.Forms.ToolStripStatusLabel StatusLabel;
     }
 }

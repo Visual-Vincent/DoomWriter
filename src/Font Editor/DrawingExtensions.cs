@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace DoomWriter.FontEditor
+namespace FontEditor
 {
     public static class DrawingExtensions
     {
@@ -18,6 +18,49 @@ namespace DoomWriter.FontEditor
                 size.Width > 0 ? size.Width : 1,
                 size.Height > 0 ? size.Height : 1
             );
+        }
+
+        /// <summary>
+        /// Clamps the rectangle within the specified bounds.
+        /// </summary>
+        /// <param name="rect">The rectangle to clamp.</param>
+        /// <param name="bounds">The bounds within which the rectangle will be clamped.</param>
+        public static Rectangle Clamp(this Rectangle rect, Rectangle bounds)
+        {
+            if(bounds.Contains(rect))
+                return rect;
+
+            if(!rect.IntersectsWith(bounds))
+                throw new ArgumentException("Rectangle does not overlap the specified bounds", nameof(rect));
+
+            int x = rect.X;
+            int y = rect.Y;
+            int w = rect.Width;
+            int h = rect.Height;
+
+            if(x < bounds.X)
+            {
+                w -= bounds.X - x;
+                x = bounds.X;
+            }
+
+            if(y < bounds.Y)
+            {
+                h -= bounds.Y - y;
+                y = bounds.Y;
+            }
+
+            if(x + w > bounds.Right)
+            {
+                w = bounds.Width - x;
+            }
+
+            if(y + h > bounds.Bottom)
+            {
+                h = bounds.Height - y;
+            }
+
+            return new Rectangle(x, y, w, h);
         }
     }
 }
