@@ -22,6 +22,7 @@ namespace FontEditor
 
         private static readonly Pen   SelectionPen   = new Pen(Color.Black, 1.0f) { DashStyle = DashStyle.Dash };
         private static readonly Brush SelectionBrush = new SolidBrush(Color.FromArgb(127, 118, 184, 242));
+        private static readonly Brush CharacterBrush = new SolidBrush(Color.FromArgb(127, Color.Yellow));
 
         private static readonly HashSet<Keys> AcceptedNumericKeyCodes = new HashSet<Keys>() {
             Keys.Enter, Keys.Back, Keys.Delete, Keys.Home, Keys.End, Keys.Left, Keys.Right, Keys.Up, Keys.Down,
@@ -36,6 +37,7 @@ namespace FontEditor
 
         private bool selecting = false;
         private Rectangle selectionRectangle;
+        private Rectangle? selectedCharacterBounds;
 
         private CharacterMappingControl characterMappingsControl = new CharacterMappingControl() { Dock = DockStyle.Fill };
 
@@ -62,6 +64,8 @@ namespace FontEditor
                 Width -= MainSplitContainer.Panel2.Width;
 
             MainPictureBox.Cursor = Cursors.Default;
+            MainPictureBox.Invalidate();
+
             MainSplitContainer.Panel2Collapsed = true;
             MainSplitContainer.Panel2.Controls.Clear();
 
@@ -99,12 +103,29 @@ namespace FontEditor
             ImageContainerTableLayoutPanel.AutoScroll = true;
         }
 
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if(keyData == Keys.Escape && selecting)
+            {
+                selecting = false;
+                
+                StatusLabel.Text = "";
+                MainPictureBox.Invalidate();
+
+                return true;
+            }
+            
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
         private void MainForm_Load(object sender, EventArgs e)
         {
             this.Menu = MainFormMenu;
 
             ToolStripManager.RenderMode = ToolStripManagerRenderMode.System;
             ToolStripManager.LoadSettings(this);
+
+            characterMappingsControl.SelectionChanged += CharacterMappingsControl_SelectionChanged;
 
             foreach(int zoomLevel in new int[] { 25, 50, 75, 100, 150, 200, 300, 400, 800, 1600 })
             {
@@ -210,7 +231,7 @@ namespace FontEditor
                     break;
 
                 case EditMode.CharacterSelect:
-                    if(e.Button != MouseButtons.Left)
+                    if(e.Button != MouseButtons.Left || !selecting)
                         break;
 
                     StatusLabel.Text = "";
@@ -227,9 +248,29 @@ namespace FontEditor
 
         private void MainPictureBox_Paint(object sender, PaintEventArgs e)
         {
+            if(selectedCharacterBounds.HasValue && editMode == EditMode.CharacterSelect)
+            {
+                var rect = selectedCharacterBounds.Value;
+                var zoomLevel = (float)MainPictureBox.Zoom;
+
+                e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
+                e.Graphics.FillRectangle(CharacterBrush,
+                    zoomLevel * rect.X + 0.5f,
+                    zoomLevel * rect.Y + 0.5f,
+                    zoomLevel * rect.Width - 0.5f,
+                    zoomLevel * rect.Height - 0.5f
+                );
+                e.Graphics.DrawRectangle(SelectionPen,
+                    zoomLevel * rect.X + 0.5f,
+                    zoomLevel * rect.Y + 0.5f,
+                    zoomLevel * rect.Width - 0.5f,
+                    zoomLevel * rect.Height - 0.5f
+                );
+            }
+
             if(selecting)
             {
-                float zoomLevel = (float)MainPictureBox.Zoom;
+                var zoomLevel = (float)MainPictureBox.Zoom;
 
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
                 e.Graphics.FillRectangle(SelectionBrush,
@@ -333,6 +374,12 @@ namespace FontEditor
             e.Handled = true;
 
             ZoomLevelToolStripTextBox_LostFocus(sender, e);
+        }
+
+        private void CharacterMappingsControl_SelectionChanged(object sender, EventArgs e)
+        {
+            selectedCharacterBounds = characterMappingsControl.SelectedCharacterMapping;
+            MainPictureBox.Invalidate();
         }
 
         private void NewMenuItem_Click(object sender, EventArgs e)

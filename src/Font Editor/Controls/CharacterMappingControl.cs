@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -9,6 +10,12 @@ namespace FontEditor
 {
     public partial class CharacterMappingControl : UserControl
     {
+        /// <summary>
+        /// Occurs when the selected character mapping changes.
+        /// </summary>
+        [Description("Occurs when the selected character mapping changes.")]
+        public event EventHandler SelectionChanged;
+
         public CharacterMappingControl()
         {
             InitializeComponent();
@@ -41,6 +48,37 @@ namespace FontEditor
             }
         }
 
+        /// <summary>
+        /// Gets the bounds of the currently selected character mapping, if any.
+        /// </summary>
+        public Rectangle? SelectedCharacterMapping
+        {
+            get {
+                if(MappingsDataGridView.SelectedRows.Count <= 0)
+                    return null;
+
+                var row = MappingsDataGridView.SelectedRows[0];
+                var xVal = row.Cells[1].Value?.ToString();
+                var yVal = row.Cells[2].Value?.ToString();
+                var wVal = row.Cells[3].Value?.ToString();
+                var hVal = row.Cells[4].Value?.ToString();
+
+                if(xVal == null || yVal == null || wVal == null || hVal == null)
+                    return null;
+
+                if(!ushort.TryParse(xVal, out var x) || !ushort.TryParse(yVal, out var y) ||
+                   !ushort.TryParse(wVal, out var w) || !ushort.TryParse(hVal, out var h))
+                    return null;
+
+                return new Rectangle(x, y, w, h);
+            }
+        }
+
+        /// <summary>
+        /// Sets the bounds of the current character.
+        /// </summary>
+        /// <param name="bounds">The bounds of the character.</param>
+        /// <param name="advance">Whether or not to advance to the next character.</param>
         public void SetCurrentCharacterBounds(Rectangle bounds, bool advance)
         {
             if(this.InvokeRequired)
@@ -168,6 +206,8 @@ namespace FontEditor
 
         private void MappingsDataGridView_SelectionChanged(object sender, EventArgs e)
         {
+            SelectionChanged?.Invoke(this, EventArgs.Empty);
+
             if(MappingsDataGridView.SelectedRows.Count <= 0)
                 return;
 
@@ -179,7 +219,7 @@ namespace FontEditor
                 CurrentCharacter = value[0];
                 return;
             }
-
+            
             // If empty row selected, advance from previous character
             if(selectedRow.Index <= 0)
                 return;
