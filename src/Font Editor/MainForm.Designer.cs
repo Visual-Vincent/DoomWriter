@@ -43,7 +43,6 @@
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
             this.MainToolStripContainer = new System.Windows.Forms.ToolStripContainer();
             this.ImageContainerTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.MainPictureBox = new FontEditor.ZoomablePictureBox();
             this.InfoLabel = new System.Windows.Forms.Label();
             this.FileToolStrip = new System.Windows.Forms.ToolStrip();
             this.NewToolStripButton = new System.Windows.Forms.ToolStripButton();
@@ -66,6 +65,7 @@
             this.StatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.ZoomToolStripDropDownButton = new System.Windows.Forms.ToolStripSplitButton();
             this.ZoomLevelToolStripTextBox = new System.Windows.Forms.ToolStripTextBox();
+            this.MainPictureBox = new FontEditor.EditorPictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).BeginInit();
             this.MainSplitContainer.Panel1.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
@@ -214,23 +214,6 @@
             this.ImageContainerTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.ImageContainerTableLayoutPanel.Size = new System.Drawing.Size(784, 513);
             this.ImageContainerTableLayoutPanel.TabIndex = 0;
-            // 
-            // MainPictureBox
-            // 
-            this.MainPictureBox.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.MainPictureBox.BackgroundImage = global::FontEditor.Properties.Resources.Checkerboard;
-            this.MainPictureBox.Location = new System.Drawing.Point(384, 248);
-            this.MainPictureBox.Margin = new System.Windows.Forms.Padding(6);
-            this.MainPictureBox.Name = "MainPictureBox";
-            this.MainPictureBox.Size = new System.Drawing.Size(16, 16);
-            this.MainPictureBox.TabIndex = 0;
-            this.MainPictureBox.Text = "zoomablePictureBox1";
-            this.MainPictureBox.ImageChanged += new System.EventHandler(this.MainPictureBox_ImageChanged);
-            this.MainPictureBox.ZoomChanged += new System.EventHandler(this.MainPictureBox_ZoomChanged);
-            this.MainPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.MainPictureBox_Paint);
-            this.MainPictureBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseDown);
-            this.MainPictureBox.MouseMove += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseMove);
-            this.MainPictureBox.MouseUp += new System.Windows.Forms.MouseEventHandler(this.MainPictureBox_MouseUp);
             // 
             // InfoLabel
             // 
@@ -443,6 +426,27 @@
             this.ZoomLevelToolStripTextBox.LostFocus += new System.EventHandler(this.ZoomLevelToolStripTextBox_LostFocus);
             this.ZoomLevelToolStripTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ZoomLevelToolStripTextBox_KeyDown);
             // 
+            // MainPictureBox
+            // 
+            this.MainPictureBox.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.MainPictureBox.BackgroundImage = global::FontEditor.Properties.Resources.Checkerboard;
+            this.MainPictureBox.Location = new System.Drawing.Point(384, 248);
+            this.MainPictureBox.Margin = new System.Windows.Forms.Padding(6);
+            this.MainPictureBox.Name = "MainPictureBox";
+            this.MainPictureBox.Size = new System.Drawing.Size(16, 16);
+            this.MainPictureBox.TabIndex = 0;
+            this.MainPictureBox.Text = "zoomablePictureBox1";
+            this.MainPictureBox.BeginPan += new System.EventHandler<FontEditor.PanEventArgs>(this.MainPictureBox_BeginPan);
+            this.MainPictureBox.BeginSelection += new System.EventHandler(this.MainPictureBox_BeginSelection);
+            this.MainPictureBox.EditModeChanged += new System.EventHandler(this.MainPictureBox_EditModeChanged);
+            this.MainPictureBox.EndPan += new System.EventHandler<FontEditor.PanEventArgs>(this.MainPictureBox_EndPan);
+            this.MainPictureBox.EndSelection += new System.EventHandler<FontEditor.SelectionEventArgs>(this.MainPictureBox_EndSelection);
+            this.MainPictureBox.Panning += new System.EventHandler<FontEditor.PanEventArgs>(this.MainPictureBox_Panning);
+            this.MainPictureBox.SelectionChanged += new System.EventHandler<FontEditor.SelectionEventArgs>(this.MainPictureBox_SelectionChanged);
+            this.MainPictureBox.ImageChanged += new System.EventHandler(this.MainPictureBox_ImageChanged);
+            this.MainPictureBox.ZoomChanged += new System.EventHandler(this.MainPictureBox_ZoomChanged);
+            this.MainPictureBox.Paint += new System.Windows.Forms.PaintEventHandler(this.MainPictureBox_Paint);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -501,7 +505,7 @@
         private System.Windows.Forms.ToolStripSeparator ToolStripSeparator2;
         private System.Windows.Forms.ToolStripButton HelpToolStripButton;
         private System.Windows.Forms.TableLayoutPanel ImageContainerTableLayoutPanel;
-        private ZoomablePictureBox MainPictureBox;
+        private EditorPictureBox MainPictureBox;
         private System.Windows.Forms.Label InfoLabel;
         private System.Windows.Forms.MenuItem SetFontImageMenuItem;
         private System.Windows.Forms.OpenFileDialog FontFileDialog;

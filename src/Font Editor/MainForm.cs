@@ -17,11 +17,7 @@ namespace FontEditor
 {
     public partial class MainForm : Form
     {
-        private static readonly Cursor HandOpen     = CursorHelper.FromByteArray(Properties.Resources.CursorHandOpen);
-        private static readonly Cursor HandGrabbing = CursorHelper.FromByteArray(Properties.Resources.CursorHandGrabbing);
-
-        private static readonly Pen   SelectionPen   = new Pen(Color.Black, 1.0f) { DashStyle = DashStyle.Dash };
-        private static readonly Brush SelectionBrush = new SolidBrush(Color.FromArgb(127, 118, 184, 242));
+        private static readonly Pen SelectionPen = new Pen(Color.Black, 1.0f) { DashStyle = DashStyle.Dash };
         private static readonly Brush CharacterBrush = new SolidBrush(Color.FromArgb(127, Color.Yellow));
 
         private static readonly HashSet<Keys> AcceptedNumericKeyCodes = new HashSet<Keys>() {
@@ -31,81 +27,17 @@ namespace FontEditor
             Keys.NumPad6, Keys.NumPad7, Keys.NumPad8, Keys.NumPad9
         };
 
-        private EditMode editMode;
-        private Point imageMouseLastPosition;
-        private Point imageMouseClickPosition;
-
-        private bool selecting = false;
-        private Rectangle selectionRectangle;
-        private Rectangle? selectedCharacterBounds;
-
         private CharacterMappingControl characterMappingsControl = new CharacterMappingControl() { Dock = DockStyle.Fill };
         private readonly PaletteViewer paletteViewer = new PaletteViewer() { Dock = DockStyle.Fill };
+
+        private Point panMouseLastPosition;
+        private Rectangle? selectedCharacterBounds;
 
         public MainForm()
         {
             InitializeComponent();
             StatusLabel.Text = "";
             MainPictureBox_ImageChanged(MainPictureBox, EventArgs.Empty);
-        }
-
-        private void SetEditMode(EditMode mode)
-        {
-            if(editMode == mode)
-                return;
-
-            editMode = mode;
-
-            foreach(var item in EditingToolStrip.Items.OfType<ToolStripButton>())
-            {
-                item.Checked = false;
-            }
-
-            if(WindowState != FormWindowState.Maximized)
-                Width -= MainSplitContainer.Panel2.Width;
-
-            MainPictureBox.Cursor = editMode.IsPannable() ? HandOpen : Cursors.Default;
-            MainPictureBox.Invalidate();
-
-            MainSplitContainer.Panel2Collapsed = true;
-            MainSplitContainer.Panel2.Controls.Clear();
-
-            switch(mode)
-            {
-                case EditMode.CharacterSelect:
-                    CharacterSelectionToolStripButton.Checked = true;
-                    MainPictureBox.Cursor = Cursors.Cross;
-
-                    MainSplitContainer.SplitterDistance = ClientSize.Width - characterMappingsControl.Width - MainSplitContainer.SplitterWidth;
-                    MainSplitContainer.Panel2Collapsed = false;
-                    MainSplitContainer.Panel2.Controls.Add(characterMappingsControl);
-                    MainSplitContainer.Refresh();
-
-                    if(WindowState != FormWindowState.Maximized)
-                        Width += MainSplitContainer.Panel2.Width;
-                    break;
-
-                case EditMode.PaletteView:
-                    ColorPaletteToolStripButton.Checked = true;
-
-                    MainSplitContainer.SplitterDistance = ClientSize.Width - paletteViewer.Width - MainSplitContainer.SplitterWidth;
-                    MainSplitContainer.Panel2Collapsed = false;
-                    MainSplitContainer.Panel2.Controls.Add(paletteViewer);
-                    MainSplitContainer.Refresh();
-
-                    var palette = MainPictureBox.Image.GetColorPalette(true);
-                    paletteViewer.SetPalette(palette, true);
-
-                    if(WindowState != FormWindowState.Maximized)
-                        Width += MainSplitContainer.Panel2.Width;
-                    break;
-
-                case EditMode.Pan:
-                default:
-                    editMode = EditMode.Pan;
-                    PanToolStripButton.Checked = true;
-                    break;
-            }
         }
 
         private void SetImageZoom(double ratio)
@@ -120,12 +52,10 @@ namespace FontEditor
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if(keyData == Keys.Escape && selecting)
+            if(keyData == Keys.Escape && MainPictureBox.IsSelecting)
             {
-                selecting = false;
-                
+                MainPictureBox.CancelSelection();
                 StatusLabel.Text = "";
-                MainPictureBox.Invalidate();
 
                 return true;
             }
@@ -161,6 +91,58 @@ namespace FontEditor
             ToolStripManager.SaveSettings(this);
         }
 
+        private void MainPictureBox_EditModeChanged(object sender, EventArgs e)
+        {
+            foreach(var item in EditingToolStrip.Items.OfType<ToolStripButton>())
+            {
+                item.Checked = false;
+            }
+
+            if(WindowState != FormWindowState.Maximized)
+                Width -= MainSplitContainer.Panel2.Width;
+
+            MainSplitContainer.Panel2Collapsed = true;
+            MainSplitContainer.Panel2.Controls.Clear();
+
+            switch(MainPictureBox.EditMode)
+            {
+                case EditMode.None:
+                    break;
+
+                case EditMode.CharacterSelect:
+                    CharacterSelectionToolStripButton.Checked = true;
+
+                    MainSplitContainer.SplitterDistance = ClientSize.Width - characterMappingsControl.Width - MainSplitContainer.SplitterWidth;
+                    MainSplitContainer.Panel2Collapsed = false;
+                    MainSplitContainer.Panel2.Controls.Add(characterMappingsControl);
+                    MainSplitContainer.Refresh();
+
+                    if(WindowState != FormWindowState.Maximized)
+                        Width += MainSplitContainer.Panel2.Width;
+                    break;
+
+                case EditMode.PaletteView:
+                    ColorPaletteToolStripButton.Checked = true;
+
+                    MainSplitContainer.SplitterDistance = ClientSize.Width - paletteViewer.Width - MainSplitContainer.SplitterWidth;
+                    MainSplitContainer.Panel2Collapsed = false;
+                    MainSplitContainer.Panel2.Controls.Add(paletteViewer);
+                    MainSplitContainer.Refresh();
+
+                    var palette = MainPictureBox.Image.GetColorPalette(true);
+                    paletteViewer.SetPalette(palette, true);
+
+                    if(WindowState != FormWindowState.Maximized)
+                        Width += MainSplitContainer.Panel2.Width;
+                    break;
+
+                case EditMode.Pan:
+                default:
+                    PanToolStripButton.Checked = true;
+                    break;
+            }
+        }
+
         private void MainPictureBox_ImageChanged(object sender, EventArgs e)
         {
             bool hasImage = MainPictureBox.Image != null;
@@ -174,95 +156,49 @@ namespace FontEditor
                 item.Enabled = hasImage;
             }
 
-            SetEditMode(EditMode.Pan);
+            MainPictureBox.EditMode = EditMode.Pan;
         }
 
-        private void MainPictureBox_MouseDown(object sender, MouseEventArgs e)
+        private void MainPictureBox_BeginPan(object sender, PanEventArgs e)
         {
-            if(e.Button == MouseButtons.Middle || (e.Button == MouseButtons.Left && editMode.IsPannable()))
-            {
-                if(editMode.IsPannable())
-                    MainPictureBox.Cursor = HandGrabbing;
-
-                imageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
-                imageMouseClickPosition = e.Location;
-            }
-            else if(editMode == EditMode.CharacterSelect && e.Button == MouseButtons.Left)
-            {
-                selecting = true;
-                imageMouseClickPosition = e.Location;
-            }
+            panMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
         }
 
-        private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
+        private void MainPictureBox_Panning(object sender, PanEventArgs e)
         {
-            if(e.Button == MouseButtons.Middle || (e.Button == MouseButtons.Left && editMode.IsPannable()))
-            {
-                ImageContainerTableLayoutPanel.AutoScrollPosition = new Point(
-                    imageMouseClickPosition.X - e.X - imageMouseLastPosition.X,
-                    imageMouseClickPosition.Y - e.Y - imageMouseLastPosition.Y
-                );
+            ImageContainerTableLayoutPanel.AutoScrollPosition = new Point(
+                e.StartLocation.X - e.Location.X - panMouseLastPosition.X,
+                e.StartLocation.Y - e.Location.Y - panMouseLastPosition.Y
+            );
 
-                imageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
-            }
-            else if(editMode == EditMode.CharacterSelect && selecting)
-            {
-                double zoomLevel = MainPictureBox.Zoom;
-
-                Point point = new Point(
-                    (int)(Math.Floor(e.X / zoomLevel) * zoomLevel),
-                    (int)(Math.Floor(e.Y / zoomLevel) * zoomLevel)
-                );
-
-                Point clickPoint = new Point(
-                    (int)(Math.Floor(imageMouseClickPosition.X / zoomLevel) * zoomLevel),
-                    (int)(Math.Floor(imageMouseClickPosition.Y / zoomLevel) * zoomLevel)
-                );
-
-                int x = clickPoint.X <= point.X ? clickPoint.X : point.X;
-                int y = clickPoint.Y <= point.Y ? clickPoint.Y : point.Y;
-                int w = clickPoint.X <= point.X ? point.X - clickPoint.X : clickPoint.X - point.X;
-                int h = clickPoint.Y <= point.Y ? point.Y - clickPoint.Y : clickPoint.Y - point.Y;
-
-                x = (int)Math.Round(x / zoomLevel);
-                y = (int)Math.Round(y / zoomLevel);
-                w = (int)Math.Round(w / zoomLevel) + 1;
-                h = (int)Math.Round(h / zoomLevel) + 1;
-
-                StatusLabel.Text = $"Origin: ({x}, {y}). Size: {w} x {h}";
-                MainStatusStrip.Refresh();
-
-                selectionRectangle = new Rectangle(x, y, w, h);
-                MainPictureBox.Invalidate();
-            }
+            panMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
         }
 
-        private void MainPictureBox_MouseUp(object sender, MouseEventArgs e)
+        private void MainPictureBox_EndPan(object sender, PanEventArgs e)
         {
-            if(editMode.IsPannable())
-                MainPictureBox.Cursor = HandOpen;
+            // No-op
+        }
 
-            switch(editMode)
-            {
-                case EditMode.CharacterSelect:
-                    if(e.Button != MouseButtons.Left || !selecting)
-                        break;
+        private void MainPictureBox_BeginSelection(object sender, EventArgs e)
+        {
+            // No-op
+        }
 
-                    StatusLabel.Text = "";
-                    MainPictureBox.Invalidate();
+        private void MainPictureBox_SelectionChanged(object sender, SelectionEventArgs e)
+        {
+            StatusLabel.Text = $"Origin: ({e.Selection.X}, {e.Selection.Y}). Size: {e.Selection.Width} x {e.Selection.Height}";
+            MainStatusStrip.Refresh();
+        }
 
-                    var rect = selectionRectangle.Clamp(new Rectangle(Point.Empty, MainPictureBox.Image.Size));
-
-                    characterMappingsControl.SetCurrentCharacterBounds(rect, true);
-                    break;
-            }
-
-            selecting = false;
+        private void MainPictureBox_EndSelection(object sender, SelectionEventArgs e)
+        {
+            StatusLabel.Text = "";
+            characterMappingsControl.SetCurrentCharacterBounds(e.Selection, true);
         }
 
         private void MainPictureBox_Paint(object sender, PaintEventArgs e)
         {
-            if(selectedCharacterBounds.HasValue && editMode == EditMode.CharacterSelect)
+            if(selectedCharacterBounds.HasValue && MainPictureBox.EditMode == EditMode.CharacterSelect)
             {
                 var rect = selectedCharacterBounds.Value;
                 var zoomLevel = (float)MainPictureBox.Zoom;
@@ -279,25 +215,6 @@ namespace FontEditor
                     zoomLevel * rect.Y + 0.5f,
                     zoomLevel * rect.Width - 0.5f,
                     zoomLevel * rect.Height - 0.5f
-                );
-            }
-
-            if(selecting)
-            {
-                var zoomLevel = (float)MainPictureBox.Zoom;
-
-                e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
-                e.Graphics.FillRectangle(SelectionBrush,
-                    zoomLevel * selectionRectangle.X + 0.5f,
-                    zoomLevel * selectionRectangle.Y + 0.5f,
-                    zoomLevel * selectionRectangle.Width - 0.5f,
-                    zoomLevel * selectionRectangle.Height - 0.5f
-                );
-                e.Graphics.DrawRectangle(SelectionPen, 
-                    zoomLevel * selectionRectangle.X + 0.5f,
-                    zoomLevel * selectionRectangle.Y + 0.5f,
-                    zoomLevel * selectionRectangle.Width - 0.5f,
-                    zoomLevel * selectionRectangle.Height - 0.5f
                 );
             }
         }
@@ -444,17 +361,17 @@ namespace FontEditor
 
         private void PanToolStripButton_Click(object sender, EventArgs e)
         {
-            SetEditMode(EditMode.Pan);
+            MainPictureBox.EditMode = EditMode.Pan;
         }
 
         private void CharacterSelectionToolStripButton_Click(object sender, EventArgs e)
         {
-            SetEditMode(EditMode.CharacterSelect);
+            MainPictureBox.EditMode = EditMode.CharacterSelect;
         }
 
         private void ColorPaletteToolStripButton_Click(object sender, EventArgs e)
         {
-            SetEditMode(EditMode.PaletteView);
+            MainPictureBox.EditMode = EditMode.PaletteView;
         }
     }
 }

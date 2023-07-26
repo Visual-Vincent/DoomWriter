@@ -4,7 +4,8 @@ namespace FontEditor
 {
     public enum EditMode
     {
-        Pan = 1,
+        None = 0,
+        Pan,
         CharacterSelect,
         PaletteView
     }

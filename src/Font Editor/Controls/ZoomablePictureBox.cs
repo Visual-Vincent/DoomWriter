@@ -145,7 +145,21 @@ namespace FontEditor
             base.SetBoundsCore(x, y, width, height, specified);
         }
 
+        /// <summary>
+        /// Paints the control and raises the <see cref="Control.Paint"/> event. If you are adding additional painting to the control, inheritors should override <see cref="OnPaintInternal(PaintEventArgs)"/> instead.
+        /// </summary>
+        /// <param name="e">A <see cref="PaintEventArgs"/> that contains the event data.</param>
         protected override void OnPaint(PaintEventArgs e)
+        {
+            OnPaintInternal(e);
+            base.OnPaint(e);
+        }
+
+        /// <summary>
+        /// Paints the control before the <see cref="Control.Paint"/> event is raised.
+        /// </summary>
+        /// <param name="e">A <see cref="PaintEventArgs"/> that contains the event data.</param>
+        protected virtual void OnPaintInternal(PaintEventArgs e)
         {
             if(image != null)
             {
@@ -163,8 +177,6 @@ namespace FontEditor
                 else
                     e.Graphics.DrawRectangle(DesignerPen, 0, 0, Width - 1, Height - 1);
             }
-
-            base.OnPaint(e);
         }
     }
 }
