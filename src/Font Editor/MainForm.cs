@@ -40,6 +40,7 @@ namespace FontEditor
         private Rectangle? selectedCharacterBounds;
 
         private CharacterMappingControl characterMappingsControl = new CharacterMappingControl() { Dock = DockStyle.Fill };
+        private readonly PaletteViewer paletteViewer = new PaletteViewer() { Dock = DockStyle.Fill };
 
         public MainForm()
         {
@@ -63,7 +64,7 @@ namespace FontEditor
             if(WindowState != FormWindowState.Maximized)
                 Width -= MainSplitContainer.Panel2.Width;
 
-            MainPictureBox.Cursor = Cursors.Default;
+            MainPictureBox.Cursor = editMode.IsPannable() ? HandOpen : Cursors.Default;
             MainPictureBox.Invalidate();
 
             MainSplitContainer.Panel2Collapsed = true;
@@ -84,11 +85,25 @@ namespace FontEditor
                         Width += MainSplitContainer.Panel2.Width;
                     break;
 
+                case EditMode.PaletteView:
+                    ColorPaletteToolStripButton.Checked = true;
+
+                    MainSplitContainer.SplitterDistance = ClientSize.Width - paletteViewer.Width - MainSplitContainer.SplitterWidth;
+                    MainSplitContainer.Panel2Collapsed = false;
+                    MainSplitContainer.Panel2.Controls.Add(paletteViewer);
+                    MainSplitContainer.Refresh();
+
+                    var palette = MainPictureBox.Image.GetColorPalette(true);
+                    paletteViewer.SetPalette(palette, true);
+
+                    if(WindowState != FormWindowState.Maximized)
+                        Width += MainSplitContainer.Panel2.Width;
+                    break;
+
                 case EditMode.Pan:
                 default:
                     editMode = EditMode.Pan;
                     PanToolStripButton.Checked = true;
-                    MainPictureBox.Cursor = HandOpen;
                     break;
             }
         }
@@ -164,9 +179,9 @@ namespace FontEditor
 
         private void MainPictureBox_MouseDown(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Middle || (editMode == EditMode.Pan && e.Button == MouseButtons.Left))
+            if(e.Button == MouseButtons.Middle || (e.Button == MouseButtons.Left && editMode.IsPannable()))
             {
-                if(editMode == EditMode.Pan)
+                if(editMode.IsPannable())
                     MainPictureBox.Cursor = HandGrabbing;
 
                 imageMouseLastPosition = ImageContainerTableLayoutPanel.AutoScrollPosition;
@@ -181,7 +196,7 @@ namespace FontEditor
 
         private void MainPictureBox_MouseMove(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Middle || (editMode == EditMode.Pan && e.Button == MouseButtons.Left))
+            if(e.Button == MouseButtons.Middle || (e.Button == MouseButtons.Left && editMode.IsPannable()))
             {
                 ImageContainerTableLayoutPanel.AutoScrollPosition = new Point(
                     imageMouseClickPosition.X - e.X - imageMouseLastPosition.X,
@@ -224,12 +239,11 @@ namespace FontEditor
 
         private void MainPictureBox_MouseUp(object sender, MouseEventArgs e)
         {
+            if(editMode.IsPannable())
+                MainPictureBox.Cursor = HandOpen;
+
             switch(editMode)
             {
-                case EditMode.Pan:
-                    MainPictureBox.Cursor = HandOpen;
-                    break;
-
                 case EditMode.CharacterSelect:
                     if(e.Button != MouseButtons.Left || !selecting)
                         break;
@@ -436,6 +450,11 @@ namespace FontEditor
         private void CharacterSelectionToolStripButton_Click(object sender, EventArgs e)
         {
             SetEditMode(EditMode.CharacterSelect);
+        }
+
+        private void ColorPaletteToolStripButton_Click(object sender, EventArgs e)
+        {
+            SetEditMode(EditMode.PaletteView);
         }
     }
 }

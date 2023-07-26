@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace FontEditor
 {
@@ -61,6 +63,32 @@ namespace FontEditor
             }
 
             return new Rectangle(x, y, w, h);
+        }
+
+        /// <summary>
+        /// Gets the palette of unique colors in the image.
+        /// </summary>
+        /// <param name="image">The image whose color palette to get.</param>
+        /// <param name="ignoreTransparent">Optional. Whether or not to ignore completely transparent colors (where the alpha channel is 0).</param>
+        public static Color[] GetColorPalette(this Image image, bool ignoreTransparent = false)
+        {
+            var palette = new HashSet<Color>();
+
+            using(var bmp = new Bitmap(image))
+            {
+                for(int y = 0; y < image.Height; y++)
+                {
+                    for(int x = 0; x < image.Width; x++)
+                    {
+                        var pixel = bmp.GetPixel(x, y);
+
+                        if(!ignoreTransparent || pixel.A > 0)
+                            palette.Add(bmp.GetPixel(x, y));
+                    }
+                }
+            }
+
+            return palette.ToArray();
         }
     }
 }

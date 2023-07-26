@@ -58,13 +58,14 @@
             this.EditingToolStrip = new System.Windows.Forms.ToolStrip();
             this.PanToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.CharacterSelectionToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.ColorPaletteToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.FontFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.ImageImportFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.ToolStripStatusFiller = new System.Windows.Forms.ToolStripStatusLabel();
-            this.ZoomToolStripDropDownButton = new System.Windows.Forms.ToolStripSplitButton();
-            this.ZoomLevelToolStripTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.MainStatusStrip = new System.Windows.Forms.StatusStrip();
             this.StatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.ZoomToolStripDropDownButton = new System.Windows.Forms.ToolStripSplitButton();
+            this.ZoomLevelToolStripTextBox = new System.Windows.Forms.ToolStripTextBox();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).BeginInit();
             this.MainSplitContainer.Panel1.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
@@ -346,11 +347,12 @@
             this.EditingToolStrip.Dock = System.Windows.Forms.DockStyle.None;
             this.EditingToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.PanToolStripButton,
-            this.CharacterSelectionToolStripButton});
+            this.CharacterSelectionToolStripButton,
+            this.ColorPaletteToolStripButton});
             this.EditingToolStrip.Location = new System.Drawing.Point(195, 0);
             this.EditingToolStrip.Name = "EditingToolStrip";
             this.EditingToolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.EditingToolStrip.Size = new System.Drawing.Size(91, 27);
+            this.EditingToolStrip.Size = new System.Drawing.Size(114, 27);
             this.EditingToolStrip.TabIndex = 1;
             // 
             // PanToolStripButton
@@ -375,6 +377,16 @@
             this.CharacterSelectionToolStripButton.Text = "Character selection";
             this.CharacterSelectionToolStripButton.Click += new System.EventHandler(this.CharacterSelectionToolStripButton_Click);
             // 
+            // ColorPaletteToolStripButton
+            // 
+            this.ColorPaletteToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.ColorPaletteToolStripButton.Image = global::FontEditor.Properties.Resources.Palette;
+            this.ColorPaletteToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.ColorPaletteToolStripButton.Name = "ColorPaletteToolStripButton";
+            this.ColorPaletteToolStripButton.Size = new System.Drawing.Size(23, 24);
+            this.ColorPaletteToolStripButton.Text = "Color palette";
+            this.ColorPaletteToolStripButton.Click += new System.EventHandler(this.ColorPaletteToolStripButton_Click);
+            // 
             // FontFileDialog
             // 
             this.FontFileDialog.Filter = "Doom Writer fonts (*.dwfont)|*.dwfont";
@@ -391,6 +403,23 @@
             this.ToolStripStatusFiller.Name = "ToolStripStatusFiller";
             this.ToolStripStatusFiller.Size = new System.Drawing.Size(663, 17);
             this.ToolStripStatusFiller.Spring = true;
+            // 
+            // MainStatusStrip
+            // 
+            this.MainStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.StatusLabel,
+            this.ToolStripStatusFiller,
+            this.ZoomToolStripDropDownButton});
+            this.MainStatusStrip.Location = new System.Drawing.Point(0, 540);
+            this.MainStatusStrip.Name = "MainStatusStrip";
+            this.MainStatusStrip.Size = new System.Drawing.Size(784, 22);
+            this.MainStatusStrip.TabIndex = 1;
+            // 
+            // StatusLabel
+            // 
+            this.StatusLabel.Name = "StatusLabel";
+            this.StatusLabel.Size = new System.Drawing.Size(39, 17);
+            this.StatusLabel.Text = "Status";
             // 
             // ZoomToolStripDropDownButton
             // 
@@ -413,23 +442,6 @@
             this.ZoomLevelToolStripTextBox.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.ZoomLevelToolStripTextBox.LostFocus += new System.EventHandler(this.ZoomLevelToolStripTextBox_LostFocus);
             this.ZoomLevelToolStripTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ZoomLevelToolStripTextBox_KeyDown);
-            // 
-            // MainStatusStrip
-            // 
-            this.MainStatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.StatusLabel,
-            this.ToolStripStatusFiller,
-            this.ZoomToolStripDropDownButton});
-            this.MainStatusStrip.Location = new System.Drawing.Point(0, 540);
-            this.MainStatusStrip.Name = "MainStatusStrip";
-            this.MainStatusStrip.Size = new System.Drawing.Size(784, 22);
-            this.MainStatusStrip.TabIndex = 1;
-            // 
-            // StatusLabel
-            // 
-            this.StatusLabel.Name = "StatusLabel";
-            this.StatusLabel.Size = new System.Drawing.Size(39, 17);
-            this.StatusLabel.Text = "Status";
             // 
             // MainForm
             // 
@@ -502,5 +514,6 @@
         private System.Windows.Forms.ToolStripTextBox ZoomLevelToolStripTextBox;
         private System.Windows.Forms.StatusStrip MainStatusStrip;
         private System.Windows.Forms.ToolStripStatusLabel StatusLabel;
+        private System.Windows.Forms.ToolStripButton ColorPaletteToolStripButton;
     }
 }
