@@ -66,11 +66,39 @@ namespace FontEditor
                 if(xVal == null || yVal == null || wVal == null || hVal == null)
                     return null;
 
-                if(!ushort.TryParse(xVal, out var x) || !ushort.TryParse(yVal, out var y) ||
-                   !ushort.TryParse(wVal, out var w) || !ushort.TryParse(hVal, out var h))
+                if(!int.TryParse(xVal, out var x) || !int.TryParse(yVal, out var y) ||
+                   !int.TryParse(wVal, out var w) || !int.TryParse(hVal, out var h))
+                    return null;
+
+                if(x < 0 || y < 0 || w < 0 || h < 0)
                     return null;
 
                 return new Rectangle(x, y, w, h);
+            }
+        }
+
+        /// <summary>
+        /// Gets the descender of the currently selected character mapping, if any.
+        /// </summary>
+        public int? SelectedCharacterMappingDescender
+        {
+            get {
+                if(MappingsDataGridView.SelectedRows.Count <= 0)
+                    return null;
+
+                var row = MappingsDataGridView.SelectedRows[0];
+                var value = row.Cells[5].Value?.ToString();
+
+                if(value == null)
+                    return 0;
+
+                if(!int.TryParse(value, out var descender))
+                    return 0;
+
+                if(descender < 0)
+                    return 0;
+
+                return descender;
             }
         }
 
@@ -114,10 +142,11 @@ namespace FontEditor
                 row.Cells[2].Value = bounds.Y;
                 row.Cells[3].Value = bounds.Width;
                 row.Cells[4].Value = bounds.Height;
+                row.Cells[5].Value = row.Cells[5].Value ?? 0;
             }
             else
             {
-                int index = MappingsDataGridView.Rows.Add(CurrentCharacter.ToString(), bounds.X, bounds.Y, bounds.Width, bounds.Height);
+                int index = MappingsDataGridView.Rows.Add(CurrentCharacter.ToString(), bounds.X, bounds.Y, bounds.Width, bounds.Height, 0);
                 row = MappingsDataGridView.Rows[index];
             }
 
@@ -126,6 +155,7 @@ namespace FontEditor
                 if(row.Index + 1 <= MappingsDataGridView.Rows.Count - 1)
                     MappingsDataGridView.Rows[row.Index + 1].Selected = true;
 
+                MappingsDataGridView.Sort(MappingsDataGridView.Columns[0], ListSortDirection.Ascending);
                 MappingsDataGridView_SelectionChanged(MappingsDataGridView, EventArgs.Empty);
             }
 
@@ -230,6 +260,45 @@ namespace FontEditor
                 return;
 
             CurrentCharacter = (char)(value[0] + 1);
+        }
+
+        private void MappingsDataGridView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            var cell = MappingsDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex];
+
+            if(cell.Value == null)
+                return;
+
+            if(e.ColumnIndex == 0)
+            {
+                if(cell.Value == null || cell.Value is string)
+                    goto sort;
+
+                if(cell.Value is char)
+                {
+                    cell.Value = cell.Value.ToString();
+                    goto sort;
+                }
+
+                MessageBox.Show("Invalid value", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                cell.Value = null;
+
+            sort:
+                this.BeginInvoke((Action)(() => MappingsDataGridView.Sort(MappingsDataGridView.Columns[0], ListSortDirection.Ascending)));
+                return;
+            }
+
+            if(cell.Value is int || cell.Value is uint || 
+               cell.Value is byte || cell.Value is sbyte || 
+               cell.Value is short || cell.Value is ushort || 
+               cell.Value is long || cell.Value is ulong)
+                return;
+
+            if(!int.TryParse(cell.Value.ToString(), out _))
+            {
+                MessageBox.Show("Invalid value", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                cell.Value = null;
+            }
         }
     }
 }

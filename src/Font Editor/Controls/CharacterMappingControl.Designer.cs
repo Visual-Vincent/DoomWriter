@@ -38,6 +38,7 @@
             this.YColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.WidthColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.HeightColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.DescenderColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.MainTableLayoutPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MappingsDataGridView)).BeginInit();
             this.SuspendLayout();
@@ -58,7 +59,7 @@
             this.MainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.MainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.MainTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.MainTableLayoutPanel.Size = new System.Drawing.Size(240, 400);
+            this.MainTableLayoutPanel.Size = new System.Drawing.Size(285, 400);
             this.MainTableLayoutPanel.TabIndex = 0;
             // 
             // TitleLabel
@@ -67,7 +68,7 @@
             this.TitleLabel.AutoSize = true;
             this.MainTableLayoutPanel.SetColumnSpan(this.TitleLabel, 2);
             this.TitleLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TitleLabel.Location = new System.Drawing.Point(39, 6);
+            this.TitleLabel.Location = new System.Drawing.Point(62, 6);
             this.TitleLabel.Margin = new System.Windows.Forms.Padding(6);
             this.TitleLabel.Name = "TitleLabel";
             this.TitleLabel.Size = new System.Drawing.Size(161, 20);
@@ -92,7 +93,7 @@
             this.CurrentCharacterTextBox.Location = new System.Drawing.Point(107, 35);
             this.CurrentCharacterTextBox.MaxLength = 1;
             this.CurrentCharacterTextBox.Name = "CurrentCharacterTextBox";
-            this.CurrentCharacterTextBox.Size = new System.Drawing.Size(130, 22);
+            this.CurrentCharacterTextBox.Size = new System.Drawing.Size(175, 22);
             this.CurrentCharacterTextBox.TabIndex = 2;
             this.CurrentCharacterTextBox.Text = "A";
             this.CurrentCharacterTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -107,7 +108,8 @@
             this.XColumn,
             this.YColumn,
             this.WidthColumn,
-            this.HeightColumn});
+            this.HeightColumn,
+            this.DescenderColumn});
             this.MainTableLayoutPanel.SetColumnSpan(this.MappingsDataGridView, 2);
             this.MappingsDataGridView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MappingsDataGridView.Location = new System.Drawing.Point(0, 60);
@@ -116,8 +118,9 @@
             this.MappingsDataGridView.Name = "MappingsDataGridView";
             this.MappingsDataGridView.RowHeadersWidth = 20;
             this.MappingsDataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.MappingsDataGridView.Size = new System.Drawing.Size(240, 340);
+            this.MappingsDataGridView.Size = new System.Drawing.Size(285, 340);
             this.MappingsDataGridView.TabIndex = 3;
+            this.MappingsDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.MappingsDataGridView_CellEndEdit);
             this.MappingsDataGridView.SelectionChanged += new System.EventHandler(this.MappingsDataGridView_SelectionChanged);
             // 
             // CharacterColumn
@@ -125,6 +128,8 @@
             this.CharacterColumn.HeaderText = "Char";
             this.CharacterColumn.MaxInputLength = 1;
             this.CharacterColumn.Name = "CharacterColumn";
+            this.CharacterColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.CharacterColumn.ToolTipText = "Character/Glyph";
             this.CharacterColumn.Width = 50;
             // 
             // XColumn
@@ -132,6 +137,8 @@
             this.XColumn.HeaderText = "X";
             this.XColumn.MaxInputLength = 6;
             this.XColumn.Name = "XColumn";
+            this.XColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.XColumn.ToolTipText = "X position";
             this.XColumn.Width = 42;
             // 
             // YColumn
@@ -139,6 +146,8 @@
             this.YColumn.HeaderText = "Y";
             this.YColumn.MaxInputLength = 6;
             this.YColumn.Name = "YColumn";
+            this.YColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.YColumn.ToolTipText = "Y position";
             this.YColumn.Width = 42;
             // 
             // WidthColumn
@@ -146,6 +155,8 @@
             this.WidthColumn.HeaderText = "W";
             this.WidthColumn.MaxInputLength = 6;
             this.WidthColumn.Name = "WidthColumn";
+            this.WidthColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.WidthColumn.ToolTipText = "Width";
             this.WidthColumn.Width = 42;
             // 
             // HeightColumn
@@ -153,7 +164,18 @@
             this.HeightColumn.HeaderText = "H";
             this.HeightColumn.MaxInputLength = 6;
             this.HeightColumn.Name = "HeightColumn";
+            this.HeightColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.HeightColumn.ToolTipText = "Height";
             this.HeightColumn.Width = 42;
+            // 
+            // DescenderColumn
+            // 
+            this.DescenderColumn.HeaderText = "Desc.";
+            this.DescenderColumn.MaxInputLength = 6;
+            this.DescenderColumn.Name = "DescenderColumn";
+            this.DescenderColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.DescenderColumn.ToolTipText = "Descender";
+            this.DescenderColumn.Width = 42;
             // 
             // CharacterMappingControl
             // 
@@ -162,7 +184,7 @@
             this.Controls.Add(this.MainTableLayoutPanel);
             this.MinimumSize = new System.Drawing.Size(180, 160);
             this.Name = "CharacterMappingControl";
-            this.Size = new System.Drawing.Size(240, 400);
+            this.Size = new System.Drawing.Size(285, 400);
             this.MainTableLayoutPanel.ResumeLayout(false);
             this.MainTableLayoutPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MappingsDataGridView)).EndInit();
@@ -182,5 +204,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn YColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn WidthColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn HeightColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn DescenderColumn;
     }
 }

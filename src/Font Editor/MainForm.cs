@@ -19,6 +19,7 @@ namespace FontEditor
     {
         private static readonly Pen SelectionPen = new Pen(Color.Black, 1.0f) { DashStyle = DashStyle.Dash };
         private static readonly Brush CharacterBrush = new SolidBrush(Color.FromArgb(127, Color.Yellow));
+        private static readonly Brush DescenderBrush = new SolidBrush(Color.FromArgb(127, Color.Lime));
 
         private static readonly HashSet<Keys> AcceptedNumericKeyCodes = new HashSet<Keys>() {
             Keys.Enter, Keys.Back, Keys.Delete, Keys.Home, Keys.End, Keys.Left, Keys.Right, Keys.Up, Keys.Down,
@@ -32,6 +33,7 @@ namespace FontEditor
 
         private Point panMouseLastPosition;
         private Rectangle? selectedCharacterBounds;
+        private int? selectedCharacterDescender;
 
         public MainForm()
         {
@@ -201,6 +203,7 @@ namespace FontEditor
             if(selectedCharacterBounds.HasValue && MainPictureBox.EditMode == EditMode.CharacterSelect)
             {
                 var rect = selectedCharacterBounds.Value;
+                var descender = selectedCharacterDescender ?? 0;
                 var zoomLevel = (float)MainPictureBox.Zoom;
 
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
@@ -208,8 +211,19 @@ namespace FontEditor
                     zoomLevel * rect.X + 0.5f,
                     zoomLevel * rect.Y + 0.5f,
                     zoomLevel * rect.Width - 0.5f,
-                    zoomLevel * rect.Height - 0.5f
+                    zoomLevel * (rect.Height - descender) - 0.5f
                 );
+
+                if(descender > 0)
+                {
+                    e.Graphics.FillRectangle(DescenderBrush,
+                        zoomLevel * rect.X + 0.5f,
+                        zoomLevel * (rect.Y + rect.Height - descender) + 0.5f,
+                        zoomLevel * rect.Width - 0.5f,
+                        zoomLevel * descender - 0.5f
+                    );
+                }
+
                 e.Graphics.DrawRectangle(SelectionPen,
                     zoomLevel * rect.X + 0.5f,
                     zoomLevel * rect.Y + 0.5f,
@@ -310,6 +324,7 @@ namespace FontEditor
         private void CharacterMappingsControl_SelectionChanged(object sender, EventArgs e)
         {
             selectedCharacterBounds = characterMappingsControl.SelectedCharacterMapping;
+            selectedCharacterDescender = characterMappingsControl.SelectedCharacterMappingDescender;
             MainPictureBox.Invalidate();
         }
 
