@@ -13,7 +13,7 @@ using Rectangle = System.Drawing.Rectangle;
 
 #pragma warning disable IDE0003 // Remove 'this'
 
-namespace FontEditor
+namespace FontEditor.Forms
 {
     public partial class MainForm : Form
     {
@@ -152,6 +152,7 @@ namespace FontEditor
             ImageContainerTableLayoutPanel.Visible = hasImage;
             InfoLabel.Visible = !hasImage;
             ZoomToolStripDropDownButton.Enabled = hasImage;
+            FontPropertiesMenuItem.Enabled = hasImage;
 
             foreach(var item in EditingToolStrip.Items.OfType<ToolStripItem>())
             {
@@ -348,6 +349,11 @@ namespace FontEditor
 
         }
 
+        private void ExitMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         private void SetFontImageMenuItem_Click(object sender, EventArgs e)
         {
             if(MainPictureBox.Image != null)
@@ -369,9 +375,12 @@ namespace FontEditor
             }
         }
 
-        private void ExitMenuItem_Click(object sender, EventArgs e)
+        private void FontPropertiesMenuItem_Click(object sender, EventArgs e)
         {
-            this.Close();
+            using(var propertiesForm = new FontPropertiesForm())
+            {
+                propertiesForm.ShowDialog(this);
+            }
         }
 
         private void PanToolStripButton_Click(object sender, EventArgs e)

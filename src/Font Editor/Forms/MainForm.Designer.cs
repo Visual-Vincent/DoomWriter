@@ -1,4 +1,4 @@
-﻿namespace FontEditor
+﻿namespace FontEditor.Forms
 {
     partial class MainForm
     {
@@ -36,8 +36,10 @@
             this.OpenMenuItem = new System.Windows.Forms.MenuItem();
             this.SaveMenuItem = new System.Windows.Forms.MenuItem();
             this.SaveAsMenuItem = new System.Windows.Forms.MenuItem();
-            this.SetFontImageMenuItem = new System.Windows.Forms.MenuItem();
             this.ExitMenuItem = new System.Windows.Forms.MenuItem();
+            this.EditMenuItem = new System.Windows.Forms.MenuItem();
+            this.SetFontImageMenuItem = new System.Windows.Forms.MenuItem();
+            this.FontPropertiesMenuItem = new System.Windows.Forms.MenuItem();
             this.HelpMenuItem = new System.Windows.Forms.MenuItem();
             this.AboutMenuItem = new System.Windows.Forms.MenuItem();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
@@ -82,6 +84,7 @@
             // 
             this.MainFormMenu.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.FileMenuItem,
+            this.EditMenuItem,
             this.HelpMenuItem});
             // 
             // FileMenuItem
@@ -92,7 +95,6 @@
             this.OpenMenuItem,
             this.SaveMenuItem,
             this.SaveAsMenuItem,
-            this.SetFontImageMenuItem,
             this.ExitMenuItem});
             this.FileMenuItem.Text = "&File";
             // 
@@ -123,21 +125,36 @@
             this.SaveAsMenuItem.Text = "Save &As...";
             this.SaveAsMenuItem.Click += new System.EventHandler(this.SaveAsMenuItem_Click);
             // 
-            // SetFontImageMenuItem
-            // 
-            this.SetFontImageMenuItem.Index = 4;
-            this.SetFontImageMenuItem.Text = "Set Font &Image...";
-            this.SetFontImageMenuItem.Click += new System.EventHandler(this.SetFontImageMenuItem_Click);
-            // 
             // ExitMenuItem
             // 
-            this.ExitMenuItem.Index = 5;
+            this.ExitMenuItem.Index = 4;
             this.ExitMenuItem.Text = "E&xit";
             this.ExitMenuItem.Click += new System.EventHandler(this.ExitMenuItem_Click);
             // 
+            // EditMenuItem
+            // 
+            this.EditMenuItem.Index = 1;
+            this.EditMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.SetFontImageMenuItem,
+            this.FontPropertiesMenuItem});
+            this.EditMenuItem.Text = "&Edit";
+            // 
+            // SetFontImageMenuItem
+            // 
+            this.SetFontImageMenuItem.Index = 0;
+            this.SetFontImageMenuItem.Text = "Set Font &Image...";
+            this.SetFontImageMenuItem.Click += new System.EventHandler(this.SetFontImageMenuItem_Click);
+            // 
+            // FontPropertiesMenuItem
+            // 
+            this.FontPropertiesMenuItem.Enabled = false;
+            this.FontPropertiesMenuItem.Index = 1;
+            this.FontPropertiesMenuItem.Text = "Font &Properties";
+            this.FontPropertiesMenuItem.Click += new System.EventHandler(this.FontPropertiesMenuItem_Click);
+            // 
             // HelpMenuItem
             // 
-            this.HelpMenuItem.Index = 1;
+            this.HelpMenuItem.Index = 2;
             this.HelpMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.AboutMenuItem});
             this.HelpMenuItem.Text = "&Help";
@@ -519,5 +536,7 @@
         private System.Windows.Forms.StatusStrip MainStatusStrip;
         private System.Windows.Forms.ToolStripStatusLabel StatusLabel;
         private System.Windows.Forms.ToolStripButton ColorPaletteToolStripButton;
+        private System.Windows.Forms.MenuItem EditMenuItem;
+        private System.Windows.Forms.MenuItem FontPropertiesMenuItem;
     }
 }
