@@ -215,6 +215,8 @@ namespace DoomWriter.GUI
             // 
             // InputTextBox
             // 
+            this.InputTextBox.AcceptsReturn = true;
+            this.InputTextBox.AcceptsTab = true;
             this.InputTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.InputTextBox.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
             this.InputTextBox.Location = new System.Drawing.Point(0, 0);
