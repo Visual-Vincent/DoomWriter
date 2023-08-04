@@ -21,17 +21,17 @@ namespace DoomWriter
         where TGlyph : IGlyph
     {
         private readonly IDictionary<char, TGlyph> glyphs;
-        private readonly IReadOnlyDictionary<char, TGlyph> glyphsLookup;
+        private readonly KernTable kernTable;
 
         /// <summary>
         /// Gets the glyphs of the font.
         /// </summary>
-        protected internal IDictionary<char, TGlyph> GlyphTable => glyphs;
+        public IDictionary<char, TGlyph> Glyphs => glyphs;
 
         /// <summary>
-        /// Gets the glyphs of the font.
+        /// Gets the table of kerning pairs of the font.
         /// </summary>
-        public IReadOnlyDictionary<char, TGlyph> Glyphs => glyphsLookup;
+        public KernTable KernTable => kernTable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Font{TImage, TGlyph}"/> class.
@@ -39,7 +39,7 @@ namespace DoomWriter
         public Font()
         {
             glyphs = new Dictionary<char, TGlyph>();
-            glyphsLookup = new ReadOnlyDictionary<char, TGlyph>(glyphs);
+            kernTable = new KernTable();
         }
 
         /// <summary>
@@ -99,9 +99,14 @@ namespace DoomWriter
 
             Image = fontData.Image.Clone();
 
-            foreach(var kvp in fontData.GlyphTable)
+            foreach(var kvp in fontData.Glyphs)
             {
-                GlyphTable.Add(kvp.Key, kvp.Value);
+                Glyphs.Add(kvp.Key, kvp.Value);
+            }
+
+            foreach(var pair in fontData.KernTable)
+            {
+                KernTable.Add(pair);
             }
         }
 
@@ -200,7 +205,7 @@ namespace DoomWriter
                 using(var glyphStream = new MemoryStream())
                 using(var glyphWriter = new BinaryWriter(glyphStream, StringEncoding))
                 {
-                    foreach(var kvp in font.GlyphTable)
+                    foreach(var kvp in font.Glyphs)
                     {
                         char glyphChar = kvp.Key;
                         Glyph glyph = kvp.Value;
@@ -214,6 +219,18 @@ namespace DoomWriter
                     }
 
                     writer.WriteLengthPrefixed(glyphStream.ToArray());
+                }
+
+                using(var kernTableStream = new MemoryStream())
+                using(var kernTableWriter = new BinaryWriter(kernTableStream, StringEncoding))
+                {
+                    foreach(var pair in font.KernTable)
+                    {
+                        kernTableWriter.Write(pair.GetTableKey());
+                        kernTableWriter.Write(pair.Kerning);
+                    }
+
+                    writer.WriteLengthPrefixed(kernTableStream.ToArray());
                 }
             }
         }
@@ -278,7 +295,21 @@ namespace DoomWriter
                         int height = glyphReader.ReadInt32();
                         int descender = glyphReader.ReadInt32();
 
-                        fontData.GlyphTable[glyphChar] = new Glyph(x, y, width, height, descender);
+                        fontData.Glyphs[glyphChar] = new Glyph(x, y, width, height, descender);
+                    }
+                }
+
+                byte[] kernTable = reader.ReadLengthPrefixed(new FormatException("The contents of the stream is not a valid Doom Writer Font file"));
+
+                using(var kernTableStream = new MemoryStream(kernTable))
+                using(var kernTableReader = new BinaryReader(kernTableStream, StringEncoding))
+                {
+                    while(kernTableStream.Position < kernTableStream.Length)
+                    {
+                        int key = kernTableReader.ReadInt32();
+                        int kerning = kernTableReader.ReadInt32();
+                        
+                        fontData.KernTable.Add(new KerningPair(key, kerning));
                     }
                 }
 

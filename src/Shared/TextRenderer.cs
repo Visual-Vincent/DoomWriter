@@ -158,6 +158,9 @@ namespace DoomWriter
                             continue;
                         }
 
+                        if(i > 0)
+                            x += currentFont.KernTable[pc, c];
+
                         glyphs.Add(new RenderedGlyph(c, glyph, x, 0, currentTranslation)); // y is calculated when rendering
 
                         x += glyph.Width + letterSpacing;
