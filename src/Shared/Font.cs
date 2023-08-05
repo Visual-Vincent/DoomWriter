@@ -56,7 +56,7 @@ namespace DoomWriter
     /// <summary>
     /// Represents the default in-memory font format.
     /// </summary>
-    public sealed class Font : Font<Image, Glyph>, IDisposable
+    public class Font : Font<Image, Glyph>, IDisposable
     {
         private static readonly byte[] FontFormatVersion = new byte[] { 0, 1 };
         private static readonly byte[] MagicNumber = new byte[] { 0x6, 0x6, 0x6, (byte)'D', (byte)'W', (byte)'F', (byte)'O', (byte)'N' };
@@ -74,7 +74,7 @@ namespace DoomWriter
         /// <summary>
         /// Gets the base image containing all the glyphs of the font.
         /// </summary>
-        public Image Image { get; internal set; }
+        public Image Image { get; protected internal set; }
 
         /// <summary>
         /// Gets the color translations added to the font.
@@ -176,6 +176,9 @@ namespace DoomWriter
             if(stream == null)
                 throw new ArgumentNullException(nameof(stream));
 
+            if(font == null)
+                throw new ArgumentNullException(nameof(font));
+
             if(!stream.CanWrite)
                 throw new ArgumentException("Stream is not writable", nameof(stream));
 
@@ -232,6 +235,25 @@ namespace DoomWriter
 
                     writer.WriteLengthPrefixed(kernTableStream.ToArray());
                 }
+            }
+        }
+
+        /// <summary>
+        /// Writes a font file to disk.
+        /// </summary>
+        /// <param name="file">The path and filename where to save the font.</param>
+        /// <param name="font">The font to save.</param>
+        public static void Save(string file, Font font)
+        {
+            if(file == null)
+                throw new ArgumentNullException(nameof(file));
+
+            if(font == null)
+                throw new ArgumentNullException(nameof(font));
+
+            using(var fileStream = new FileStream(file, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                Save(fileStream, font);
             }
         }
 

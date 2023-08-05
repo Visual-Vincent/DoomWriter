@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+
+using DWImage = DoomWriter.Image;
 
 namespace FontEditor
 {
@@ -89,6 +92,38 @@ namespace FontEditor
             }
 
             return palette.ToArray();
+        }
+
+        /// <summary>
+        /// Converts the Doom Writer image into a <see cref="Image"/>.
+        /// </summary>
+        /// <param name="image">The image to convert.</param>
+        public static Image ToSystemDrawingImage(this DWImage image)
+        {
+            Image result = null;
+
+            try
+            {
+                result = new Bitmap(image.Width, image.Height);
+
+                using(var memoryStream = new MemoryStream())
+                {
+                    image.Save(memoryStream, DoomWriter.ImageFormat.PNG);
+                    memoryStream.Position = 0;
+
+                    using(var img = Image.FromStream(memoryStream))
+                    using(var g = Graphics.FromImage(result))
+                    {
+                        g.DrawImage(img, new Rectangle(Point.Empty, img.Size));
+                        return result;
+                    }
+                }
+            }
+            catch
+            {
+                result?.Dispose();
+                throw;
+            }
         }
     }
 }

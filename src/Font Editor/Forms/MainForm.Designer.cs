@@ -61,13 +61,14 @@
             this.PanToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.CharacterSelectionToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.ColorPaletteToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.FontFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.OpenFontFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.ImageImportFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.ToolStripStatusFiller = new System.Windows.Forms.ToolStripStatusLabel();
             this.MainStatusStrip = new System.Windows.Forms.StatusStrip();
             this.StatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.ZoomToolStripDropDownButton = new System.Windows.Forms.ToolStripSplitButton();
             this.ZoomLevelToolStripTextBox = new System.Windows.Forms.ToolStripTextBox();
+            this.SaveFontFileDialog = new System.Windows.Forms.SaveFileDialog();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).BeginInit();
             this.MainSplitContainer.Panel1.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
@@ -292,6 +293,7 @@
             this.NewToolStripButton.Padding = new System.Windows.Forms.Padding(2);
             this.NewToolStripButton.Size = new System.Drawing.Size(24, 24);
             this.NewToolStripButton.Text = "&New";
+            this.NewToolStripButton.Click += new System.EventHandler(this.NewToolStripButton_Click);
             // 
             // OpenToolStripButton
             // 
@@ -302,6 +304,7 @@
             this.OpenToolStripButton.Padding = new System.Windows.Forms.Padding(2);
             this.OpenToolStripButton.Size = new System.Drawing.Size(24, 24);
             this.OpenToolStripButton.Text = "&Open";
+            this.OpenToolStripButton.Click += new System.EventHandler(this.OpenToolStripButton_Click);
             // 
             // SaveToolStripButton
             // 
@@ -312,6 +315,7 @@
             this.SaveToolStripButton.Padding = new System.Windows.Forms.Padding(2);
             this.SaveToolStripButton.Size = new System.Drawing.Size(24, 24);
             this.SaveToolStripButton.Text = "&Save";
+            this.SaveToolStripButton.Click += new System.EventHandler(this.SaveToolStripButton_Click);
             // 
             // ToolStripSeparator1
             // 
@@ -408,10 +412,10 @@
             this.ColorPaletteToolStripButton.Text = "Color palette";
             this.ColorPaletteToolStripButton.Click += new System.EventHandler(this.ColorPaletteToolStripButton_Click);
             // 
-            // FontFileDialog
+            // OpenFontFileDialog
             // 
-            this.FontFileDialog.Filter = "Doom Writer fonts (*.dwfont)|*.dwfont";
-            this.FontFileDialog.RestoreDirectory = true;
+            this.OpenFontFileDialog.Filter = "Doom Writer fonts (*.dwfont)|*.dwfont";
+            this.OpenFontFileDialog.RestoreDirectory = true;
             // 
             // ImageImportFileDialog
             // 
@@ -463,6 +467,11 @@
             this.ZoomLevelToolStripTextBox.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.ZoomLevelToolStripTextBox.LostFocus += new System.EventHandler(this.ZoomLevelToolStripTextBox_LostFocus);
             this.ZoomLevelToolStripTextBox.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ZoomLevelToolStripTextBox_KeyDown);
+            // 
+            // SaveFontFileDialog
+            // 
+            this.SaveFontFileDialog.Filter = "Doom Writer fonts (*.dwfont)|*.dwfont";
+            this.SaveFontFileDialog.RestoreDirectory = true;
             // 
             // MainForm
             // 
@@ -525,7 +534,7 @@
         private EditorPictureBox MainPictureBox;
         private System.Windows.Forms.Label InfoLabel;
         private System.Windows.Forms.MenuItem SetFontImageMenuItem;
-        private System.Windows.Forms.OpenFileDialog FontFileDialog;
+        private System.Windows.Forms.OpenFileDialog OpenFontFileDialog;
         private System.Windows.Forms.OpenFileDialog ImageImportFileDialog;
         private System.Windows.Forms.ToolStrip EditingToolStrip;
         private System.Windows.Forms.ToolStripButton PanToolStripButton;
@@ -538,5 +547,6 @@
         private System.Windows.Forms.ToolStripButton ColorPaletteToolStripButton;
         private System.Windows.Forms.MenuItem EditMenuItem;
         private System.Windows.Forms.MenuItem FontPropertiesMenuItem;
+        private System.Windows.Forms.SaveFileDialog SaveFontFileDialog;
     }
 }

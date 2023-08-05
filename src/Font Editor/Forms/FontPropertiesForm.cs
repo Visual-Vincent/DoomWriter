@@ -15,6 +15,12 @@ namespace FontEditor.Forms
         private bool unsavedChanges = false;
 
         /// <summary>
+        /// Occurs when the user makes changes and saves them.
+        /// </summary>
+        [Browsable(false)]
+        public event EventHandler SavedChanges;
+
+        /// <summary>
         /// Gets or sets the font whose properties are edited by the form.
         /// </summary>
         public MutableFont EditedFont
@@ -112,6 +118,7 @@ namespace FontEditor.Forms
             }
 
             UnsavedChanges = false;
+            SavedChanges?.Invoke(this, EventArgs.Empty);
         }
 
         private void FontPropertiesForm_FormClosing(object sender, FormClosingEventArgs e)

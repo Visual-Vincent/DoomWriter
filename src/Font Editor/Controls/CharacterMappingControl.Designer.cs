@@ -121,6 +121,7 @@
             this.MappingsDataGridView.Size = new System.Drawing.Size(285, 340);
             this.MappingsDataGridView.TabIndex = 3;
             this.MappingsDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.MappingsDataGridView_CellEndEdit);
+            this.MappingsDataGridView.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.MappingsDataGridView_RowsRemoved);
             this.MappingsDataGridView.SelectionChanged += new System.EventHandler(this.MappingsDataGridView_SelectionChanged);
             // 
             // CharacterColumn

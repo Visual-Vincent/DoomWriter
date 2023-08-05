@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
@@ -16,6 +17,12 @@ namespace FontEditor
 {
     public partial class CharacterMappingControl : UserControl
     {
+        /// <summary>
+        /// Occurs whenever a change is made to the character mappings.
+        /// </summary>
+        [Description("Occurs whenever a change is made to the character mappings.")]
+        public event EventHandler MappingsChanged;
+
         /// <summary>
         /// Occurs when the selected character mapping changes.
         /// </summary>
@@ -64,27 +71,89 @@ namespace FontEditor
                     return null;
 
                 var row = MappingsDataGridView.SelectedRows[0];
-                var xVal = row.Cells[1].Value?.ToString();
-                var yVal = row.Cells[2].Value?.ToString();
-                var wVal = row.Cells[3].Value?.ToString();
-                var hVal = row.Cells[4].Value?.ToString();
 
-                if(xVal == null || yVal == null || wVal == null || hVal == null)
-                    return null;
+                if(ExtractCharacterDefinition(row, out _, out var glyph))
+                    return glyph;
+                
+                return null;
+            }
+        }
 
-                if(!int.TryParse(xVal, out var x) || !int.TryParse(yVal, out var y) ||
-                   !int.TryParse(wVal, out var w) || !int.TryParse(hVal, out var h))
-                    return null;
+        private bool ExtractCharacterDefinition(DataGridViewRow row, out char character, out Glyph glyph)
+        {
+            character = default;
+            glyph = null;
 
-                if(x < 0 || y < 0 || w < 0 || h < 0)
-                    return null;
+            var cVal = row.Cells[0].Value?.ToString();
+            var xVal = row.Cells[1].Value?.ToString();
+            var yVal = row.Cells[2].Value?.ToString();
+            var wVal = row.Cells[3].Value?.ToString();
+            var hVal = row.Cells[4].Value?.ToString();
 
-                var descVal = row.Cells[5].Value?.ToString();
+            if(cVal == null || xVal == null || yVal == null || wVal == null || hVal == null)
+                return false;
 
-                if(descVal == null || !int.TryParse(descVal, out var descender) || descender < 0)
-                    descender = 0;
+            if(cVal.Length != 1 || char.IsWhiteSpace(cVal[0]))
+                return false;
 
-                return new Glyph(x, y, w, h, descender);
+            if(!int.TryParse(xVal, out var x) || !int.TryParse(yVal, out var y) ||
+               !int.TryParse(wVal, out var w) || !int.TryParse(hVal, out var h))
+                return false;
+
+            if(x < 0 || y < 0 || w < 0 || h < 0)
+                return false;
+
+            var descVal = row.Cells[5].Value?.ToString();
+
+            if(descVal == null || !int.TryParse(descVal, out var descender) || descender < 0)
+                descender = 0;
+
+            character = cVal[0];
+            glyph = new Glyph(x, y, w, h, descender);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Constructs and returns a new lookup table of all character mapping definitions.
+        /// </summary>
+        public IDictionary<char, Glyph> GetCharacterMappings()
+        {
+            var definitions = new SortedDictionary<char, Glyph>();
+
+            for(int i = 0; i < MappingsDataGridView.Rows.Count; i++)
+            {
+                var row = MappingsDataGridView.Rows[i];
+
+                if(row.IsNewRow)
+                    continue;
+
+                if(!ExtractCharacterDefinition(row, out var character, out var glyph))
+                    continue;
+
+                definitions[character] = glyph;
+            }
+
+            return definitions;
+        }
+
+        /// <summary>
+        /// Loads the specified set of character mappings.
+        /// </summary>
+        /// <param name="glyphs">The table of character mappings to load.</param>
+        public void LoadCharacterMappings(IDictionary<char, Glyph> glyphs)
+        {
+            if(glyphs == null)
+                throw new ArgumentNullException(nameof(glyphs));
+
+            MappingsDataGridView.Rows.Clear();
+
+            foreach(var kvp in glyphs.OrderBy(k => k.Key))
+            {
+                var c = kvp.Key;
+                var glyph = kvp.Value;
+
+                MappingsDataGridView.Rows.Add(c.ToString(), glyph.X, glyph.Y, glyph.Width, glyph.Height, glyph.Descender);
             }
         }
 
@@ -150,6 +219,8 @@ namespace FontEditor
                 CurrentCharacter = (char)(CurrentCharacter.Value + 1);*/
 
             CurrentCharacterTextBox.Focus();
+
+            MappingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void CurrentCharacterTextBox_KeyPress(object sender, KeyPressEventArgs e)
@@ -170,7 +241,7 @@ namespace FontEditor
         private void CurrentCharacterTextBox_KeyDown(object sender, KeyEventArgs e)
         {
             DataGridViewRow selectedRow;
-
+            
             switch(e.KeyCode)
             {
                 case Keys.Down:
@@ -250,6 +321,8 @@ namespace FontEditor
 
         private void MappingsDataGridView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
+            MappingsChanged?.Invoke(this, EventArgs.Empty);
+
             var cell = MappingsDataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex];
 
             if(cell.Value == null)
@@ -285,6 +358,11 @@ namespace FontEditor
                 MessageBox.Show("Invalid value", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 cell.Value = null;
             }
+        }
+
+        private void MappingsDataGridView_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
+        {
+            MappingsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }

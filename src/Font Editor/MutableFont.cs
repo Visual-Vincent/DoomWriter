@@ -6,7 +6,7 @@ namespace FontEditor
     /// <summary>
     /// Represents a font with mutable properties.
     /// </summary>
-    public class MutableFont : Font<Image, Glyph>
+    public class MutableFont : Font
     {
         /// <summary>
         /// Gets the height of empty lines.
@@ -56,7 +56,11 @@ namespace FontEditor
         /// <summary>
         /// Gets the base image containing all the glyphs of the font.
         /// </summary>
-        public Image Image { get; set; }
+        new public Image Image
+        {
+            get => base.Image;
+            set => base.Image = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MutableFont"/> class.
@@ -72,32 +76,6 @@ namespace FontEditor
         public MutableFont(Font font)
         {
             OnLoadFontData(font);
-        }
-
-        protected override void OnLoadFontData(Font fontData)
-        {
-            EmptyLineHeight = fontData.EmptyLineHeight;
-            LetterSpacing = fontData.LetterSpacing;
-            LineHeight = fontData.LineHeight;
-            SpaceWidth = fontData.SpaceWidth;
-            TabWidth = fontData.TabWidth;
-
-            Image = fontData.Image.Clone();
-
-            foreach(var kvp in fontData.Glyphs)
-            {
-                Glyphs.Add(kvp.Key, kvp.Value);
-            }
-
-            foreach(var pair in fontData.KernTable)
-            {
-                KernTable.Add(pair);
-            }
-        }
-
-        public override void DrawGlyph(Glyph glyph, ISurface<Image> destination, int x, int y, ColorTranslation translation = null)
-        {
-            throw new NotSupportedException($"{nameof(MutableFont)} does not support drawing glyphs");
         }
     }
 }

@@ -3,13 +3,19 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
+using System.IO;
 using System.Windows.Forms;
+using SixLabors.ImageSharp.PixelFormats;
 using DoomWriter;
 
 using Image = System.Drawing.Image;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
 using Rectangle = System.Drawing.Rectangle;
+using SixLaborsImage = SixLabors.ImageSharp.Image;
+using SixLaborsImageRgba32 = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
+using DWImage = DoomWriter.Image;
+using DWFont = DoomWriter.Font;
 
 #pragma warning disable IDE0003 // Remove 'this'
 
@@ -29,18 +35,110 @@ namespace FontEditor.Forms
         };
 
         private MutableFont editedFont = new MutableFont();
+        private string editedFontPath = null;
 
-        private CharacterMappingControl characterMappingsControl = new CharacterMappingControl() { Dock = DockStyle.Fill };
         private readonly PaletteViewer paletteViewer = new PaletteViewer() { Dock = DockStyle.Fill };
+        private CharacterMappingControl characterMappingsControl;
 
         private Point panMouseLastPosition;
         private Glyph selectedCharacterMapping;
+
+        private bool unsavedChanges = false;
+
+        /// <summary>
+        /// Gets whether or not the form has unsaved changes.
+        /// </summary>
+        public bool UnsavedChanges
+        {
+            get {
+                return unsavedChanges;
+            }
+            private set {
+                if(unsavedChanges == value)
+                    return;
+
+                unsavedChanges = value;
+
+                this.Text = this.Text.TrimEnd('*') + (unsavedChanges ? "*" : "");
+            }
+        }
 
         public MainForm()
         {
             InitializeComponent();
             StatusLabel.Text = "";
             MainPictureBox_ImageChanged(MainPictureBox, EventArgs.Empty);
+        }
+
+        private void NewFont()
+        {
+            editedFont.Dispose();
+            editedFont = new MutableFont();
+            editedFontPath = null;
+            selectedCharacterMapping = null;
+
+            UnsavedChanges = false;
+
+            SetImageZoom(1.0);
+            MainPictureBox.Image = null;
+
+            if(characterMappingsControl != null)
+            {
+                characterMappingsControl.MappingsChanged -= CharacterMappingsControl_MappingsChanged;
+                characterMappingsControl.SelectionChanged -= CharacterMappingsControl_SelectionChanged;
+                characterMappingsControl.Dispose();
+            }
+
+            characterMappingsControl = new CharacterMappingControl() { Dock = DockStyle.Fill };
+            characterMappingsControl.MappingsChanged += CharacterMappingsControl_MappingsChanged;
+            characterMappingsControl.SelectionChanged += CharacterMappingsControl_SelectionChanged;
+        }
+
+        private void LoadFont(MutableFont font)
+        {
+            NewFont();
+
+            editedFont.Dispose();
+            editedFont = font;
+
+            MainPictureBox.Image?.Dispose();
+            MainPictureBox.Image = editedFont.Image.ToSystemDrawingImage();
+
+            characterMappingsControl.LoadCharacterMappings(editedFont.Glyphs);
+            UnsavedChanges = false;
+        }
+
+        private DialogResult SaveChanges()
+        {
+            var result = DialogResult.OK;
+
+            // If we don't have a path, or if the file including its parent directory cannot be found, show save dialog
+            if(string.IsNullOrEmpty(editedFontPath) || (!File.Exists(editedFontPath) && !Directory.Exists(Path.GetDirectoryName(editedFontPath))))
+            {
+                result = SaveFontFileDialog.ShowDialog();
+
+                if(result != DialogResult.OK)
+                    return result;
+
+                editedFontPath = SaveFontFileDialog.FileName;
+                SaveFontFileDialog.FileName = "";
+            }
+
+            UpdateCharacterMappings();
+
+            try
+            {
+                DWFont.Save(editedFontPath, editedFont);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Failed to save font:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return DialogResult.Abort;
+            }
+
+            UnsavedChanges = false;
+
+            return result;
         }
 
         private void SetImageZoom(double ratio)
@@ -51,6 +149,18 @@ namespace FontEditor.Forms
             ImageContainerTableLayoutPanel.AutoScroll = false;
             MainPictureBox.Zoom = ratio;
             ImageContainerTableLayoutPanel.AutoScroll = true;
+        }
+
+        private void UpdateCharacterMappings()
+        {
+            editedFont.Glyphs.Clear();
+
+            var mappings = characterMappingsControl.GetCharacterMappings();
+
+            foreach(var kvp in mappings)
+            {
+                editedFont.Glyphs.Add(kvp);
+            }
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -73,7 +183,7 @@ namespace FontEditor.Forms
             ToolStripManager.RenderMode = ToolStripManagerRenderMode.System;
             ToolStripManager.LoadSettings(this);
 
-            characterMappingsControl.SelectionChanged += CharacterMappingsControl_SelectionChanged;
+            NewFont();
 
             foreach(int zoomLevel in new int[] { 25, 50, 75, 100, 150, 200, 300, 400, 800, 1600 })
             {
@@ -91,6 +201,26 @@ namespace FontEditor.Forms
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if(UnsavedChanges && e.CloseReason != CloseReason.ApplicationExitCall && e.CloseReason != CloseReason.WindowsShutDown)
+            {
+                var result = MessageBox.Show("Would you like to save your changes before exiting?", Application.ProductName, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
+
+                switch(result)
+                {
+                    case DialogResult.Yes:
+                        if(SaveChanges() != DialogResult.OK)
+                        {
+                            goto case DialogResult.Cancel;
+                        }
+                        break;
+
+                    case DialogResult.Cancel:
+                        e.Cancel = true;
+                        return; // Skip the rest of the event handler
+                }
+            }
+
+            editedFont.Dispose();
             ToolStripManager.SaveSettings(this);
         }
 
@@ -153,6 +283,10 @@ namespace FontEditor.Forms
             ImageContainerTableLayoutPanel.Visible = hasImage;
             InfoLabel.Visible = !hasImage;
             ZoomToolStripDropDownButton.Enabled = hasImage;
+
+            SaveToolStripButton.Enabled = hasImage;
+            SaveMenuItem.Enabled = hasImage;
+            SaveAsMenuItem.Enabled = hasImage;
             FontPropertiesMenuItem.Enabled = hasImage;
 
             foreach(var item in EditingToolStrip.Items.OfType<ToolStripItem>())
@@ -326,6 +460,11 @@ namespace FontEditor.Forms
             ZoomLevelToolStripTextBox_LostFocus(sender, e);
         }
 
+        private void CharacterMappingsControl_MappingsChanged(object sender, EventArgs e)
+        {
+            UnsavedChanges = true;
+        }
+
         private void CharacterMappingsControl_SelectionChanged(object sender, EventArgs e)
         {
             selectedCharacterMapping = characterMappingsControl.SelectedCharacterMapping;
@@ -334,22 +473,66 @@ namespace FontEditor.Forms
 
         private void NewMenuItem_Click(object sender, EventArgs e)
         {
+            if(UnsavedChanges)
+            {
+                var result = MessageBox.Show("Would you like to save your changes before creating a new font?", Application.ProductName, MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
 
+                switch(result)
+                {
+                    case DialogResult.Yes:
+                        if(SaveChanges() != DialogResult.OK)
+                        {
+                            goto case DialogResult.Cancel;
+                        }
+                        break;
+
+                    case DialogResult.Cancel:
+                        return; // Skip the rest of the event handler
+                }
+            }
+
+            NewFont();
         }
 
         private void OpenMenuItem_Click(object sender, EventArgs e)
         {
+            if(OpenFontFileDialog.ShowDialog() != DialogResult.OK)
+                return;
 
+            string path = OpenFontFileDialog.FileName;
+            MutableFont font = null;
+
+            OpenFontFileDialog.FileName = "";
+
+            try
+            {
+                font = DWFont.Load<MutableFont>(path);
+            }
+            catch(Exception ex)
+            {
+                font?.Dispose();
+                MessageBox.Show("Failed to open font:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            LoadFont(font);
+            editedFontPath = path;
         }
 
         private void SaveMenuItem_Click(object sender, EventArgs e)
         {
-
+            SaveChanges();
         }
 
         private void SaveAsMenuItem_Click(object sender, EventArgs e)
         {
+            if(SaveFontFileDialog.ShowDialog() != DialogResult.OK)
+                return;
 
+            editedFontPath = SaveFontFileDialog.FileName;
+            SaveFontFileDialog.FileName = "";
+
+            SaveChanges();
         }
 
         private void ExitMenuItem_Click(object sender, EventArgs e)
@@ -368,23 +551,60 @@ namespace FontEditor.Forms
             if(ImageImportFileDialog.ShowDialog() != DialogResult.OK)
                 return;
 
+            SixLaborsImageRgba32 sixLaborsImage = null;
+            DWImage dwImage = null;
+            Image image = null;
+
             try
             {
-                MainPictureBox.Image = Image.FromFile(ImageImportFileDialog.FileName);
+                sixLaborsImage = SixLaborsImage.Load<Rgba32>(ImageImportFileDialog.FileName);
+                dwImage = new DWImage(sixLaborsImage);
+                image = dwImage.ToSystemDrawingImage();
             }
             catch(Exception ex)
             {
-                MessageBox.Show("Failed to load image:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                dwImage.Dispose();
+                sixLaborsImage.Dispose();
+                image.Dispose();
+
+                MessageBox.Show("Failed to import new font image:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+            editedFont.Image?.Dispose();
+            editedFont.Image = dwImage;
+
+            MainPictureBox.Image?.Dispose();
+            MainPictureBox.Image = image;
+
+            UnsavedChanges = true;
         }
 
         private void FontPropertiesMenuItem_Click(object sender, EventArgs e)
         {
+            UpdateCharacterMappings();
+
             using(var propertiesForm = new FontPropertiesForm())
             {
+                propertiesForm.SavedChanges += (fsender, fe) => UnsavedChanges = true;
                 propertiesForm.EditedFont = editedFont;
                 propertiesForm.ShowDialog(this);
             }
+        }
+
+        private void NewToolStripButton_Click(object sender, EventArgs e)
+        {
+            NewMenuItem_Click(NewMenuItem, EventArgs.Empty);
+        }
+
+        private void OpenToolStripButton_Click(object sender, EventArgs e)
+        {
+            OpenMenuItem_Click(OpenMenuItem, EventArgs.Empty);
+        }
+
+        private void SaveToolStripButton_Click(object sender, EventArgs e)
+        {
+            SaveMenuItem_Click(SaveMenuItem, EventArgs.Empty);
         }
 
         private void PanToolStripButton_Click(object sender, EventArgs e)
