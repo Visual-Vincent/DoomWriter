@@ -9,14 +9,9 @@ namespace DoomWriter
     public readonly struct KerningPair
     {
         /// <summary>
-        /// Gets the first character in the pair.
+        /// Gets the unique key of the kerning pair that is used to look it up in a <see cref="KernTable"/>.
         /// </summary>
-        public char Left { get; }
-
-        /// <summary>
-        /// Gets the second character in the pair.
-        /// </summary>
-        public char Right { get; }
+        public int Key { get; }
 
         /// <summary>
         /// Gets the kerning value of the pair.
@@ -24,13 +19,24 @@ namespace DoomWriter
         public int Kerning { get; }
 
         /// <summary>
+        /// Gets the first character in the pair.
+        /// </summary>
+        public char Left => (char)(Key & 0xFFFF);
+
+        /// <summary>
+        /// Gets the second character in the pair.
+        /// </summary>
+        public char Right => (char)((Key >> 16) & 0xFFFF);
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="KerningPair"/> struct.
         /// </summary>
-        /// <param name="key">The kern table key to extract a character pair from.</param>
+        /// <param name="key">The kern table key of the character pair.</param>
         /// <param name="kerning">The kerning value of the pair.</param>
         public KerningPair(int key, int kerning)
-            : this((char)(key & 0xFFFF), (char)((key >> 16) & 0xFFFF), kerning)
         {
+            Key = key;
+            Kerning = kerning;
         }
 
         /// <summary>
@@ -40,10 +46,8 @@ namespace DoomWriter
         /// <param name="right">The second character in the pair.</param>
         /// <param name="kerning">The kerning value of the pair.</param>
         public KerningPair(char left, char right, int kerning)
+            : this(GetTableKey(left, right), kerning)
         {
-            Left = left;
-            Right = right;
-            Kerning = kerning;
         }
 
         /// <summary>
@@ -55,15 +59,6 @@ namespace DoomWriter
         public static int GetTableKey(char left, char right)
         {
             return left | (right << 16);
-        }
-
-        /// <summary>
-        /// Returns the unique key of the kerning pair that is used to look it up in a <see cref="KernTable"/>.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int GetTableKey()
-        {
-            return GetTableKey(Left, Right);
         }
 
         /// <inheritdoc/>
@@ -79,22 +74,18 @@ namespace DoomWriter
         }
 
         /// <summary>
-        /// Determines whether the specified kerning pair is equal to the current kerning pair.
+        /// Determines whether the specified kerning pair is equal to the current kerning pair. This does not take into account the kerning value, only the key.
         /// </summary>
         /// <param name="pair">The kerning pair to compare against.</param>
         public bool Equals(KerningPair pair)
         {
-            return (
-                pair.Left == Left &&
-                pair.Right == Right &&
-                pair.Kerning == Kerning
-            );
+            return pair.Key == Key;
         }
 
         /// <inheritdoc/>
         public override int GetHashCode()
         {
-            return GetTableKey().GetHashCode();
+            return Key.GetHashCode();
         }
 
         /// <inheritdoc/>

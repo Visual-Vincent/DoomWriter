@@ -226,7 +226,7 @@ namespace DoomWriter
                 {
                     foreach(var pair in font.KernTable)
                     {
-                        kernTableWriter.Write(pair.GetTableKey());
+                        kernTableWriter.Write(pair.Key);
                         kernTableWriter.Write(pair.Kerning);
                     }
 
