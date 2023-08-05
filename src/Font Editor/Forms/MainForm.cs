@@ -28,6 +28,8 @@ namespace FontEditor.Forms
             Keys.NumPad6, Keys.NumPad7, Keys.NumPad8, Keys.NumPad9
         };
 
+        private MutableFont editedFont = new MutableFont();
+
         private CharacterMappingControl characterMappingsControl = new CharacterMappingControl() { Dock = DockStyle.Fill };
         private readonly PaletteViewer paletteViewer = new PaletteViewer() { Dock = DockStyle.Fill };
 
@@ -379,6 +381,7 @@ namespace FontEditor.Forms
         {
             using(var propertiesForm = new FontPropertiesForm())
             {
+                propertiesForm.EditedFont = editedFont;
                 propertiesForm.ShowDialog(this);
             }
         }

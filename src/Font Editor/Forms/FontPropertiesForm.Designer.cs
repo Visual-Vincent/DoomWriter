@@ -51,11 +51,10 @@
             this.EmptyLineHeightDescriptionLabel = new System.Windows.Forms.Label();
             this.MetricsPreviewGroupBox = new System.Windows.Forms.GroupBox();
             this.MetricsPreviewPanel = new System.Windows.Forms.Panel();
+            this.MetricsPreviewErrorLabel = new System.Windows.Forms.Label();
             this.MetricsPreviewPictureBox = new System.Windows.Forms.PictureBox();
             this.KerningTabPage = new System.Windows.Forms.TabPage();
-            this.MetricsPreviewErrorLabel = new System.Windows.Forms.Label();
             this.KerningTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.KerningDescriptionLabel = new System.Windows.Forms.Label();
             this.KerningSplitContainer = new System.Windows.Forms.SplitContainer();
             this.KerningPreviewGroupBox = new System.Windows.Forms.GroupBox();
             this.KerningPreviewPanel = new System.Windows.Forms.Panel();
@@ -65,6 +64,8 @@
             this.LeftCharColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.RightCharColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.KerningColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.KerningDescriptionLabel = new System.Windows.Forms.Label();
+            this.ApplyButton = new System.Windows.Forms.Button();
             this.MainTableLayoutPanel.SuspendLayout();
             this.MainTabControl.SuspendLayout();
             this.MetricsTabPage.SuspendLayout();
@@ -91,12 +92,14 @@
             // 
             // MainTableLayoutPanel
             // 
-            this.MainTableLayoutPanel.ColumnCount = 2;
+            this.MainTableLayoutPanel.ColumnCount = 3;
             this.MainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.MainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.MainTableLayoutPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.MainTableLayoutPanel.Controls.Add(this.OKButton, 0, 1);
             this.MainTableLayoutPanel.Controls.Add(this.CancelFormButton, 1, 1);
             this.MainTableLayoutPanel.Controls.Add(this.MainTabControl, 0, 0);
+            this.MainTableLayoutPanel.Controls.Add(this.ApplyButton, 2, 1);
             this.MainTableLayoutPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainTableLayoutPanel.Location = new System.Drawing.Point(0, 0);
             this.MainTableLayoutPanel.Name = "MainTableLayoutPanel";
@@ -109,7 +112,7 @@
             // OKButton
             // 
             this.OKButton.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.OKButton.Location = new System.Drawing.Point(212, 533);
+            this.OKButton.Location = new System.Drawing.Point(131, 533);
             this.OKButton.Margin = new System.Windows.Forms.Padding(3, 3, 3, 6);
             this.OKButton.Name = "OKButton";
             this.OKButton.Size = new System.Drawing.Size(75, 23);
@@ -121,9 +124,8 @@
             // CancelFormButton
             // 
             this.CancelFormButton.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.CancelFormButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.CancelFormButton.Location = new System.Drawing.Point(293, 533);
-            this.CancelFormButton.Margin = new System.Windows.Forms.Padding(3, 3, 6, 6);
+            this.CancelFormButton.Location = new System.Drawing.Point(212, 533);
+            this.CancelFormButton.Margin = new System.Windows.Forms.Padding(3, 3, 3, 6);
             this.CancelFormButton.Name = "CancelFormButton";
             this.CancelFormButton.Size = new System.Drawing.Size(75, 23);
             this.CancelFormButton.TabIndex = 17;
@@ -133,7 +135,7 @@
             // 
             // MainTabControl
             // 
-            this.MainTableLayoutPanel.SetColumnSpan(this.MainTabControl, 2);
+            this.MainTableLayoutPanel.SetColumnSpan(this.MainTabControl, 3);
             this.MainTabControl.Controls.Add(this.MetricsTabPage);
             this.MainTabControl.Controls.Add(this.KerningTabPage);
             this.MainTabControl.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -225,6 +227,7 @@
             this.LetterSpacingNumericUpDown.Name = "LetterSpacingNumericUpDown";
             this.LetterSpacingNumericUpDown.Size = new System.Drawing.Size(90, 20);
             this.LetterSpacingNumericUpDown.TabIndex = 1;
+            this.LetterSpacingNumericUpDown.ValueChanged += new System.EventHandler(this.NumericUpDown_ValueChanged);
             // 
             // LetterSpacingDescriptionLabel
             // 
@@ -261,6 +264,7 @@
             this.SpaceWidthNumericUpDown.Name = "SpaceWidthNumericUpDown";
             this.SpaceWidthNumericUpDown.Size = new System.Drawing.Size(90, 20);
             this.SpaceWidthNumericUpDown.TabIndex = 4;
+            this.SpaceWidthNumericUpDown.ValueChanged += new System.EventHandler(this.NumericUpDown_ValueChanged);
             // 
             // SpaceWidthDescriptionLabel
             // 
@@ -297,6 +301,7 @@
             this.TabWidthNumericUpDown.Name = "TabWidthNumericUpDown";
             this.TabWidthNumericUpDown.Size = new System.Drawing.Size(90, 20);
             this.TabWidthNumericUpDown.TabIndex = 7;
+            this.TabWidthNumericUpDown.ValueChanged += new System.EventHandler(this.NumericUpDown_ValueChanged);
             // 
             // TabWidthDescriptionLabel
             // 
@@ -338,6 +343,7 @@
             this.LineHeightNumericUpDown.Name = "LineHeightNumericUpDown";
             this.LineHeightNumericUpDown.Size = new System.Drawing.Size(90, 20);
             this.LineHeightNumericUpDown.TabIndex = 10;
+            this.LineHeightNumericUpDown.ValueChanged += new System.EventHandler(this.NumericUpDown_ValueChanged);
             // 
             // LineHeightDescriptionLabel
             // 
@@ -379,6 +385,7 @@
             this.EmptyLineHeightNumericUpDown.Name = "EmptyLineHeightNumericUpDown";
             this.EmptyLineHeightNumericUpDown.Size = new System.Drawing.Size(90, 20);
             this.EmptyLineHeightNumericUpDown.TabIndex = 12;
+            this.EmptyLineHeightNumericUpDown.ValueChanged += new System.EventHandler(this.NumericUpDown_ValueChanged);
             // 
             // EmptyLineHeightDescriptionLabel
             // 
@@ -418,6 +425,18 @@
             this.MetricsPreviewPanel.Size = new System.Drawing.Size(336, 209);
             this.MetricsPreviewPanel.TabIndex = 15;
             // 
+            // MetricsPreviewErrorLabel
+            // 
+            this.MetricsPreviewErrorLabel.BackColor = System.Drawing.SystemColors.Control;
+            this.MetricsPreviewErrorLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.MetricsPreviewErrorLabel.Location = new System.Drawing.Point(0, 0);
+            this.MetricsPreviewErrorLabel.Name = "MetricsPreviewErrorLabel";
+            this.MetricsPreviewErrorLabel.Size = new System.Drawing.Size(332, 205);
+            this.MetricsPreviewErrorLabel.TabIndex = 1;
+            this.MetricsPreviewErrorLabel.Text = "Unable to show preview:\r\nPlease create a mapping for uppercase characters \'H\' and" +
+    " \'K\'";
+            this.MetricsPreviewErrorLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // MetricsPreviewPictureBox
             // 
             this.MetricsPreviewPictureBox.Location = new System.Drawing.Point(0, 0);
@@ -438,18 +457,6 @@
             this.KerningTabPage.Text = "Kerning";
             this.KerningTabPage.UseVisualStyleBackColor = true;
             // 
-            // MetricsPreviewErrorLabel
-            // 
-            this.MetricsPreviewErrorLabel.BackColor = System.Drawing.SystemColors.Control;
-            this.MetricsPreviewErrorLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.MetricsPreviewErrorLabel.Location = new System.Drawing.Point(0, 0);
-            this.MetricsPreviewErrorLabel.Name = "MetricsPreviewErrorLabel";
-            this.MetricsPreviewErrorLabel.Size = new System.Drawing.Size(332, 205);
-            this.MetricsPreviewErrorLabel.TabIndex = 1;
-            this.MetricsPreviewErrorLabel.Text = "Unable to show preview:\r\nPlease create a mapping for uppercase characters \'H\' and" +
-    " \'K\'";
-            this.MetricsPreviewErrorLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
             // KerningTableLayoutPanel
             // 
             this.KerningTableLayoutPanel.ColumnCount = 1;
@@ -465,18 +472,6 @@
             this.KerningTableLayoutPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.KerningTableLayoutPanel.Size = new System.Drawing.Size(348, 489);
             this.KerningTableLayoutPanel.TabIndex = 0;
-            // 
-            // KerningDescriptionLabel
-            // 
-            this.KerningDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
-            this.KerningDescriptionLabel.AutoSize = true;
-            this.KerningDescriptionLabel.Location = new System.Drawing.Point(15, 473);
-            this.KerningDescriptionLabel.Margin = new System.Windows.Forms.Padding(6, 6, 6, 3);
-            this.KerningDescriptionLabel.Name = "KerningDescriptionLabel";
-            this.KerningDescriptionLabel.Size = new System.Drawing.Size(317, 13);
-            this.KerningDescriptionLabel.TabIndex = 0;
-            this.KerningDescriptionLabel.Text = "Kerning adjusts the spacing between a specific pair of characters.";
-            this.KerningDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // KerningSplitContainer
             // 
@@ -556,6 +551,9 @@
             this.KerningDataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.KerningDataGridView.Size = new System.Drawing.Size(348, 363);
             this.KerningDataGridView.TabIndex = 0;
+            this.KerningDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.KerningDataGridView_CellEndEdit);
+            this.KerningDataGridView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.KerningDataGridView_CellValueChanged);
+            this.KerningDataGridView.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.KerningDataGridView_RowsRemoved);
             // 
             // LeftCharColumn
             // 
@@ -584,11 +582,35 @@
             this.KerningColumn.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.KerningColumn.ToolTipText = "Kerning";
             // 
+            // KerningDescriptionLabel
+            // 
+            this.KerningDescriptionLabel.Anchor = System.Windows.Forms.AnchorStyles.None;
+            this.KerningDescriptionLabel.AutoSize = true;
+            this.KerningDescriptionLabel.Location = new System.Drawing.Point(15, 473);
+            this.KerningDescriptionLabel.Margin = new System.Windows.Forms.Padding(6, 6, 6, 3);
+            this.KerningDescriptionLabel.Name = "KerningDescriptionLabel";
+            this.KerningDescriptionLabel.Size = new System.Drawing.Size(317, 13);
+            this.KerningDescriptionLabel.TabIndex = 0;
+            this.KerningDescriptionLabel.Text = "Kerning adjusts the spacing between a specific pair of characters.";
+            this.KerningDescriptionLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
+            // ApplyButton
+            // 
+            this.ApplyButton.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.ApplyButton.Enabled = false;
+            this.ApplyButton.Location = new System.Drawing.Point(293, 533);
+            this.ApplyButton.Margin = new System.Windows.Forms.Padding(3, 3, 6, 6);
+            this.ApplyButton.Name = "ApplyButton";
+            this.ApplyButton.Size = new System.Drawing.Size(75, 23);
+            this.ApplyButton.TabIndex = 18;
+            this.ApplyButton.Text = "&Apply";
+            this.ApplyButton.UseVisualStyleBackColor = true;
+            this.ApplyButton.Click += new System.EventHandler(this.ApplyButton_Click);
+            // 
             // FontPropertiesForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.CancelFormButton;
             this.ClientSize = new System.Drawing.Size(374, 562);
             this.Controls.Add(this.MainTableLayoutPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -597,6 +619,7 @@
             this.Name = "FontPropertiesForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Font Properties";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FontPropertiesForm_FormClosing);
             this.MainTableLayoutPanel.ResumeLayout(false);
             this.MainTabControl.ResumeLayout(false);
             this.MetricsTabPage.ResumeLayout(false);
@@ -666,5 +689,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn LeftCharColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn RightCharColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn KerningColumn;
+        private System.Windows.Forms.Button ApplyButton;
     }
 }
