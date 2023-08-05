@@ -308,8 +308,8 @@ namespace DoomWriter
                     {
                         int key = kernTableReader.ReadInt32();
                         int kerning = kernTableReader.ReadInt32();
-                        
-                        fontData.KernTable.Add(new KerningPair(key, kerning));
+
+                        fontData.KernTable[key] = kerning;
                     }
                 }
 

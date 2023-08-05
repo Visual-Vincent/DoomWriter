@@ -12,7 +12,26 @@ namespace DoomWriter
         private readonly Dictionary<int, int> table = new Dictionary<int, int>();
 
         /// <summary>
-        /// Gets or sets the kerning value, if any, for the specified pair of characters.
+        /// Gets or sets the kerning value for the specified kerning pair.
+        /// </summary>
+        /// <param name="key">The unique key of the kerning pair.</param>
+        /// <returns>The kerning value for the character pair associated with the specified key. If the key does not exist, a get operation returns zero, and a set operation creates a new kerning pair.</returns>
+        /// <remarks>A negative value means the characters should be moved closer together. A positive value means the characters should be moved further apart.</remarks>
+        public int this[int key]
+        {
+            get {
+                if(table.TryGetValue(key, out int kerning))
+                    return kerning;
+
+                return 0;
+            }
+            set {
+                table[key] = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the kerning value for the specified pair of characters.
         /// </summary>
         /// <param name="left">The first character in the pair.</param>
         /// <param name="right">The second character in the pair.</param>
@@ -22,15 +41,11 @@ namespace DoomWriter
         {
             get {
                 int key = KerningPair.GetTableKey(left, right);
-
-                if(table.TryGetValue(key, out int kerning))
-                    return kerning;
-
-                return 0;
+                return this[key];
             }
             set {
                 int key = KerningPair.GetTableKey(left, right);
-                table[key] = value;
+                this[key] = value;
             }
         }
 
