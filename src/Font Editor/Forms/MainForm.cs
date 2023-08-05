@@ -34,8 +34,7 @@ namespace FontEditor.Forms
         private readonly PaletteViewer paletteViewer = new PaletteViewer() { Dock = DockStyle.Fill };
 
         private Point panMouseLastPosition;
-        private Rectangle? selectedCharacterBounds;
-        private int? selectedCharacterDescender;
+        private Glyph selectedCharacterMapping;
 
         public MainForm()
         {
@@ -203,10 +202,13 @@ namespace FontEditor.Forms
 
         private void MainPictureBox_Paint(object sender, PaintEventArgs e)
         {
-            if(selectedCharacterBounds.HasValue && MainPictureBox.EditMode == EditMode.CharacterSelect)
+            if(selectedCharacterMapping != null && MainPictureBox.EditMode == EditMode.CharacterSelect)
             {
-                var rect = selectedCharacterBounds.Value;
-                var descender = selectedCharacterDescender ?? 0;
+                var rect = new Rectangle(
+                    selectedCharacterMapping.X, selectedCharacterMapping.Y,
+                    selectedCharacterMapping.Width, selectedCharacterMapping.Height
+                );
+                var descender = selectedCharacterMapping.Descender;
                 var zoomLevel = (float)MainPictureBox.Zoom;
 
                 e.Graphics.PixelOffsetMode = PixelOffsetMode.Half;
@@ -326,8 +328,7 @@ namespace FontEditor.Forms
 
         private void CharacterMappingsControl_SelectionChanged(object sender, EventArgs e)
         {
-            selectedCharacterBounds = characterMappingsControl.SelectedCharacterMapping;
-            selectedCharacterDescender = characterMappingsControl.SelectedCharacterMappingDescender;
+            selectedCharacterMapping = characterMappingsControl.SelectedCharacterMapping;
             MainPictureBox.Invalidate();
         }
 

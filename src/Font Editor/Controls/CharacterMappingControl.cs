@@ -3,6 +3,12 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
+using DoomWriter;
+
+using Image = System.Drawing.Image;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
+using Rectangle = System.Drawing.Rectangle;
 
 #pragma warning disable IDE0003 // Remove 'this'
 
@@ -49,9 +55,9 @@ namespace FontEditor
         }
 
         /// <summary>
-        /// Gets the bounds of the currently selected character mapping, if any.
+        /// Gets the definition of the currently selected character mapping, if any.
         /// </summary>
-        public Rectangle? SelectedCharacterMapping
+        public Glyph SelectedCharacterMapping
         {
             get {
                 if(MappingsDataGridView.SelectedRows.Count <= 0)
@@ -73,32 +79,12 @@ namespace FontEditor
                 if(x < 0 || y < 0 || w < 0 || h < 0)
                     return null;
 
-                return new Rectangle(x, y, w, h);
-            }
-        }
+                var descVal = row.Cells[5].Value?.ToString();
 
-        /// <summary>
-        /// Gets the descender of the currently selected character mapping, if any.
-        /// </summary>
-        public int? SelectedCharacterMappingDescender
-        {
-            get {
-                if(MappingsDataGridView.SelectedRows.Count <= 0)
-                    return null;
+                if(descVal == null || !int.TryParse(descVal, out var descender) || descender < 0)
+                    descender = 0;
 
-                var row = MappingsDataGridView.SelectedRows[0];
-                var value = row.Cells[5].Value?.ToString();
-
-                if(value == null)
-                    return 0;
-
-                if(!int.TryParse(value, out var descender))
-                    return 0;
-
-                if(descender < 0)
-                    return 0;
-
-                return descender;
+                return new Glyph(x, y, w, h, descender);
             }
         }
 
