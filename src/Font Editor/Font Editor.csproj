@@ -6,6 +6,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>FontEditor</AssemblyName>
     <RootNamespace>FontEditor</RootNamespace>
+    <ApplicationIcon>FontEditor.ico</ApplicationIcon>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
@@ -15,6 +16,10 @@
 
   <ItemGroup>
     <Compile Include="..\AssemblyInfo.Shared.cs" Link="AssemblyInfo.Shared.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="FontEditor.ico" />
   </ItemGroup>
 
   <ItemGroup>

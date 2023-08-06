@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FontPropertiesForm));
             this.MainTableLayoutPanel = new System.Windows.Forms.TableLayoutPanel();
             this.OKButton = new System.Windows.Forms.Button();
             this.CancelFormButton = new System.Windows.Forms.Button();
@@ -614,9 +615,12 @@
             this.ClientSize = new System.Drawing.Size(374, 562);
             this.Controls.Add(this.MainTableLayoutPanel);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FontPropertiesForm";
+            this.ShowIcon = false;
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Font Properties";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FontPropertiesForm_FormClosing);
