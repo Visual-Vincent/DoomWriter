@@ -15,8 +15,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.5" />
-    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta15" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.6" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
