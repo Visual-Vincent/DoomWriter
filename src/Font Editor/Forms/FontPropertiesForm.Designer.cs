@@ -434,8 +434,7 @@
             this.MetricsPreviewErrorLabel.Name = "MetricsPreviewErrorLabel";
             this.MetricsPreviewErrorLabel.Size = new System.Drawing.Size(332, 205);
             this.MetricsPreviewErrorLabel.TabIndex = 1;
-            this.MetricsPreviewErrorLabel.Text = "Unable to show preview:\r\nPlease create a mapping for uppercase characters \'H\' and" +
-    " \'K\'";
+            this.MetricsPreviewErrorLabel.Text = "Loading preview...";
             this.MetricsPreviewErrorLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // MetricsPreviewPictureBox
@@ -555,6 +554,7 @@
             this.KerningDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.KerningDataGridView_CellEndEdit);
             this.KerningDataGridView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.KerningDataGridView_CellValueChanged);
             this.KerningDataGridView.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.KerningDataGridView_RowsRemoved);
+            this.KerningDataGridView.SelectionChanged += new System.EventHandler(this.KerningDataGridView_SelectionChanged);
             // 
             // LeftCharColumn
             // 
@@ -624,6 +624,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Font Properties";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FontPropertiesForm_FormClosing);
+            this.Load += new System.EventHandler(this.FontPropertiesForm_Load);
             this.MainTableLayoutPanel.ResumeLayout(false);
             this.MainTabControl.ResumeLayout(false);
             this.MetricsTabPage.ResumeLayout(false);

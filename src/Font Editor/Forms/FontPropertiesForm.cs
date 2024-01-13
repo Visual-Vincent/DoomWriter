@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using DoomWriter;
+using TextRenderer = DoomWriter.TextRenderer;
 
 #pragma warning disable IDE0003 // Remove 'this'
 
@@ -12,7 +15,15 @@ namespace FontEditor.Forms
     public partial class FontPropertiesForm : Form
     {
         private MutableFont editedFont;
+        private MutableFont previewFont;
         private bool unsavedChanges = false;
+        private bool isUpdatingFont = false;
+
+        private readonly object previewLockObj = new object();
+
+        private Task<Image> renderTask = Task.FromResult<Image>(null);
+        private Func<Task<Image>> reRenderTask;
+        private TextRenderer renderer = new TextRenderer();
 
         /// <summary>
         /// Occurs when the user makes changes and saves them.
@@ -32,7 +43,18 @@ namespace FontEditor.Forms
                 if(editedFont == value)
                     return;
 
+                isUpdatingFont = true;
                 editedFont = value;
+
+                if(previewFont != null)
+                {
+                    previewFont.Image = null; // previewFont.Image points to editedFont.Image. Do not dispose.
+                    previewFont.Dispose();
+                }
+
+                previewFont = new MutableFont(editedFont);
+                previewFont.Image?.Dispose();
+                previewFont.Image = editedFont.Image;
 
                 KerningDataGridView.Rows.Clear();
 
@@ -51,6 +73,7 @@ namespace FontEditor.Forms
                 }
 
                 UnsavedChanges = false;
+                isUpdatingFont = false;
             }
         }
 
@@ -76,6 +99,34 @@ namespace FontEditor.Forms
         public FontPropertiesForm()
         {
             InitializeComponent();
+        }
+
+        private System.Drawing.Image ConvertDWImage(Image image)
+        {
+            System.Drawing.Image result = null;
+
+            try
+            {
+                result = new System.Drawing.Bitmap(image.Width, image.Height);
+
+                using(var memoryStream = new MemoryStream())
+                {
+                    image.Save(memoryStream, ImageFormat.PNG);
+                    memoryStream.Position = 0;
+
+                    using(var img = System.Drawing.Image.FromStream(memoryStream))
+                    using(var g = System.Drawing.Graphics.FromImage(result))
+                    {
+                        g.DrawImage(img, new System.Drawing.Rectangle(System.Drawing.Point.Empty, img.Size));
+                        return result;
+                    }
+                }
+            }
+            catch
+            {
+                result?.Dispose();
+                throw;
+            }
         }
 
         private void SaveChanges()
@@ -121,6 +172,117 @@ namespace FontEditor.Forms
             SavedChanges?.Invoke(this, EventArgs.Empty);
         }
 
+        private async Task UpdateMetricsPreview()
+        {
+            const string text = "The quick brown fox jumps over the lazy dog.\n\tThis line starts with a tab character.\n\nTHIS IS THE FOURTH LINE.";
+
+            Image image = null;
+
+            lock(previewLockObj)
+            {
+                if(!renderTask.IsCompleted)
+                {
+                    reRenderTask = async () => await renderer.RenderAsync(text, previewFont);
+                    return;
+                }
+
+                renderTask = Task.Run(async () => await renderer.RenderAsync(text, previewFont));
+            }
+
+            while(true)
+            {
+                try
+                {
+                    image = await renderTask;
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show("Failed to update preview:" + Environment.NewLine + Environment.NewLine + ex.ToString(), Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MetricsPreviewErrorLabel.Text = "An error occured while updating the preview.";
+                    MetricsPreviewErrorLabel.Show();
+                    goto complete;
+                }
+
+                lock(previewLockObj)
+                {
+                    if(reRenderTask == null)
+                        break;
+
+                    image?.Dispose();
+
+                    renderTask = Task.Run(reRenderTask);
+                    reRenderTask = null;
+                }
+            }
+
+        complete:
+            MetricsPreviewPictureBox.Image?.Dispose();
+            MetricsPreviewPictureBox.Image = image != null ? ConvertDWImage(image) : null;
+
+            if(image != null)
+                MetricsPreviewErrorLabel.Hide();
+
+            image?.Dispose();
+        }
+
+        private async Task UpdateKerningPreview(char leftCharacter, char rightCharacter)
+        {
+            string text = $"{leftCharacter}{rightCharacter}";
+
+            Image image = null;
+
+            lock(previewLockObj)
+            {
+                if(!renderTask.IsCompleted)
+                {
+                    reRenderTask = async () => await renderer.RenderAsync(text, previewFont);
+                    return;
+                }
+
+                renderTask = Task.Run(async () => await renderer.RenderAsync(text, previewFont));
+            }
+
+            while(true)
+            {
+                try
+                {
+                    image = await renderTask;
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show("Failed to update preview:" + Environment.NewLine + Environment.NewLine + ex.ToString(), Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    KerningPreviewErrorLabel.Text = "An error occured while updating the preview.";
+                    KerningPreviewErrorLabel.Show();
+                    goto complete;
+                }
+
+                lock(previewLockObj)
+                {
+                    if(reRenderTask == null)
+                        break;
+
+                    image?.Dispose();
+
+                    renderTask = Task.Run(reRenderTask);
+                    reRenderTask = null;
+                }
+            }
+
+        complete:
+            KerningPreviewPictureBox.Image?.Dispose();
+            KerningPreviewPictureBox.Image = image != null ? ConvertDWImage(image) : null;
+
+            if(image != null)
+                KerningPreviewErrorLabel.Hide();
+
+            image?.Dispose();
+        }
+
+        private async void FontPropertiesForm_Load(object sender, EventArgs e)
+        {
+            await UpdateMetricsPreview();
+        }
+
         private void FontPropertiesForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             if(this.DialogResult == DialogResult.None)
@@ -136,8 +298,24 @@ namespace FontEditor.Forms
                 {
                     this.DialogResult = DialogResult.None;
                     e.Cancel = true;
+                    return;
                 }
             }
+
+            if(!renderTask.IsCompleted)
+                renderTask.Wait(2000);
+
+            renderer.Dispose();
+            renderer = null;
+
+            if(previewFont != null)
+            {
+                previewFont.Image = null; // previewFont.Image points to editedFont.Image. Do not dispose.
+                previewFont.Dispose();
+            }
+
+            MetricsPreviewPictureBox.Image?.Dispose();
+            MetricsPreviewPictureBox.Image = null;
         }
 
         private void OKButton_Click(object sender, EventArgs e)
@@ -199,7 +377,12 @@ namespace FontEditor.Forms
 
         private void KerningDataGridView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
+            if(isUpdatingFont)
+                return;
+
             UnsavedChanges = true;
+
+            KerningDataGridView_SelectionChanged(sender, e);
         }
 
         private void KerningDataGridView_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
@@ -207,9 +390,60 @@ namespace FontEditor.Forms
             UnsavedChanges = true;
         }
 
-        private void NumericUpDown_ValueChanged(object sender, EventArgs e)
+        private async void KerningDataGridView_SelectionChanged(object sender, EventArgs e)
         {
+            if(isUpdatingFont)
+                return;
+
+            if(KerningDataGridView.SelectedRows.Count <= 0)
+                goto noPreview;
+
+            var selectedRow = KerningDataGridView.SelectedRows[0];
+
+            if(selectedRow.Cells.Count < 3)
+                goto noPreview;
+
+            var leftCharValue = selectedRow.Cells[0].Value?.ToString();
+            var rightCharValue = selectedRow.Cells[1].Value?.ToString();
+            var kerningValue = selectedRow.Cells[2].Value?.ToString();
+
+            if(string.IsNullOrEmpty(leftCharValue) || string.IsNullOrEmpty(rightCharValue))
+                goto noPreview;
+
+            var leftChar = leftCharValue[0];
+            var rightChar = rightCharValue[0];
+
+            if(!int.TryParse(kerningValue, out var kerning))
+                goto noPreview;
+
+            previewFont.KernTable[leftChar, rightChar] = kerning;
+
+            await UpdateKerningPreview(leftChar, rightChar);
+
+            if(e is DataGridViewCellEventArgs)
+                await UpdateMetricsPreview();
+
+            return;
+
+        noPreview:
+            KerningPreviewErrorLabel.Show();
+            KerningPreviewErrorLabel.Text = "Please select a kerning pair";
+        }
+
+        private async void NumericUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            if(isUpdatingFont)
+                return;
+
             UnsavedChanges = true;
+
+            previewFont.LetterSpacing = (short)LetterSpacingNumericUpDown.Value;
+            previewFont.SpaceWidth = (ushort)SpaceWidthNumericUpDown.Value;
+            previewFont.TabWidth = (byte)TabWidthNumericUpDown.Value;
+            previewFont.LineHeight = (short)LineHeightNumericUpDown.Value;
+            previewFont.EmptyLineHeight = (int)EmptyLineHeightNumericUpDown.Value;
+
+            await UpdateMetricsPreview();
         }
     }
 }
