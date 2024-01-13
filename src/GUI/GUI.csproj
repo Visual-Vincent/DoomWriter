@@ -37,9 +37,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Licenses\*">
+    <EmbeddedResource Include="Licenses\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="Licenses\.gitkeep" />
+    <None Update="Licenses\.gitkeep">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -49,12 +56,6 @@
     <EmbeddedResource Include="..\Shared\Licenses\ImageSharp.txt" Link="Licenses\ImageSharp.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Licenses\.gitkeep">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

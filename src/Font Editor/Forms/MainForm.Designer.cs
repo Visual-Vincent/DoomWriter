@@ -168,6 +168,7 @@
             // 
             this.AboutMenuItem.Index = 1;
             this.AboutMenuItem.Text = "&About";
+            this.AboutMenuItem.Click += new System.EventHandler(this.AboutMenuItem_Click);
             // 
             // MainSplitContainer
             // 

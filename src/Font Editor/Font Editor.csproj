@@ -14,12 +14,35 @@
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;FONTEDITOR</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;FONTEDITOR</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Include="..\AssemblyInfo.Shared.cs" Link="AssemblyInfo.Shared.cs" />
+    <Compile Include="..\GUI\MainAboutBox.cs" Link="Forms\MainAboutBox.cs" />
+    <Compile Include="..\GUI\MainAboutBox.Designer.cs" Link="Forms\MainAboutBox.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Licenses\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
     <Content Include="FontEditor.ico" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <EmbeddedResource Include="..\GUI\MainAboutBox.resx" Link="Forms\MainAboutBox.resx" />
+    <EmbeddedResource Include="..\Shared\Licenses\ImageSharp-THIRD-PARTY-NOTICES.txt" Link="Licenses\ImageSharp-THIRD-PARTY-NOTICES.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\Shared\Licenses\ImageSharp.txt" Link="Licenses\ImageSharp.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -39,12 +62,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Licenses\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

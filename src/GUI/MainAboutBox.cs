@@ -6,7 +6,11 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 
+#if FONTEDITOR
+namespace FontEditor.Forms
+#else
 namespace DoomWriter.GUI
+#endif
 {
     partial class MainAboutBox : Form
     {
@@ -24,7 +28,10 @@ namespace DoomWriter.GUI
 
         private static readonly Dictionary<string, ThirdPartyItem> thirdPartyLicenses = new Dictionary<string, ThirdPartyItem>() {
             { "ImageSharp",           new ThirdPartyItem("https://github.com/SixLabors/ImageSharp", "ImageSharp.txt") },
-            { "ImageSharp (notices)", new ThirdPartyItem("https://github.com/SixLabors/ImageSharp", "ImageSharp-THIRD-PARTY-NOTICES.txt") }
+            { "ImageSharp (notices)", new ThirdPartyItem("https://github.com/SixLabors/ImageSharp", "ImageSharp-THIRD-PARTY-NOTICES.txt") },
+#if FONTEDITOR
+            { "Silk Icons", new ThirdPartyItem("https://web.archive.org/web/20230105212205/http://www.famfamfam.com/lab/icons/silk/", "silkicons.txt") },
+#endif
         };
 
         public MainAboutBox()
@@ -62,7 +69,7 @@ namespace DoomWriter.GUI
             if(!thirdPartyLicenses.TryGetValue(ThirdPartyListBox.SelectedItem?.ToString(), out var item))
                 return;
 
-            using(var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{typeof(MainAboutBox).Namespace}.Licenses.{item.LicenseName}"))
+            using(var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream($"{typeof(Program).Namespace}.Licenses.{item.LicenseName}"))
             using(var streamReader = new StreamReader(resourceStream))
             {
                 ThirdPartyTextBox.Text = streamReader.ReadToEnd();

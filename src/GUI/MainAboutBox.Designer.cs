@@ -1,4 +1,8 @@
-﻿namespace DoomWriter.GUI
+﻿#if FONTEDITOR
+namespace FontEditor.Forms
+#else
+namespace DoomWriter.GUI
+#endif
 {
     partial class MainAboutBox
     {
@@ -19,7 +23,7 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+#region Windows Form Designer generated code
 
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -299,7 +303,7 @@
 
         }
 
-        #endregion
+#endregion
 
         private System.Windows.Forms.TableLayoutPanel DoomWriterTableLayoutPanel;
         private System.Windows.Forms.PictureBox LogoPictureBox;

@@ -286,17 +286,17 @@ namespace DoomWriter.GUI
 #pragma warning restore IDE0003
         }
 
+        private void HelpOnlineMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://github.com/Visual-Vincent/DoomWriter/wiki");
+        }
+
         private void AboutMenuItem_Click(object sender, EventArgs e)
         {
             using(var aboutBox = new MainAboutBox())
             {
                 aboutBox.ShowDialog();
             }
-        }
-
-        private void HelpOnlineMenuItem_Click(object sender, EventArgs e)
-        {
-            Process.Start("https://github.com/Visual-Vincent/DoomWriter/wiki");
         }
 
         private enum ImageFilters

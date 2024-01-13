@@ -1,8 +1,15 @@
-Silk Icons was created by Mark James (http://www.famfamfam.com/lab/icons/silk/)
+Silk Icons 1.3 was created by Mark James
 and is licensed under CC-BY 2.5 (https://creativecommons.org/licenses/by/2.5/)
 
+Mark James
+  - Website (archived as of 2023-01-05): https://web.archive.org/web/20230105212205/http://www.famfamfam.com/lab/icons/silk/
+  - Original website (no longer available): http://www.famfamfam.com/lab/icons/silk/
+  - Twitter: https://twitter.com/markjames
+  - E-mail: mjames@gmail.com
 
 
+
+Creative Commons Attribution 2.5 License
 
 CREATIVE COMMONS CORPORATION IS NOT A LAW FIRM AND DOES NOT PROVIDE LEGAL SERVICES. DISTRIBUTION OF THIS LICENSE DOES NOT CREATE AN ATTORNEY-CLIENT RELATIONSHIP. CREATIVE COMMONS PROVIDES THIS INFORMATION ON AN "AS-IS" BASIS. CREATIVE COMMONS MAKES NO WARRANTIES REGARDING THE INFORMATION PROVIDED, AND DISCLAIMS LIABILITY FOR DAMAGES RESULTING FROM ITS USE.
 License

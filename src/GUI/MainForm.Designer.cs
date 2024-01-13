@@ -37,6 +37,7 @@ namespace DoomWriter.GUI
             this.SaveAsMenuItem = new System.Windows.Forms.MenuItem();
             this.ExitMenuItem = new System.Windows.Forms.MenuItem();
             this.HelpMenuItem = new System.Windows.Forms.MenuItem();
+            this.HelpOnlineMenuItem = new System.Windows.Forms.MenuItem();
             this.AboutMenuItem = new System.Windows.Forms.MenuItem();
             this.MainStatusStrip = new System.Windows.Forms.StatusStrip();
             this.ToolStripLabelStatus = new System.Windows.Forms.ToolStripStatusLabel();
@@ -51,7 +52,6 @@ namespace DoomWriter.GUI
             this.ResultPanel = new System.Windows.Forms.Panel();
             this.ResultPictureBox = new System.Windows.Forms.PictureBox();
             this.InputTextBox = new System.Windows.Forms.TextBox();
-            this.HelpOnlineMenuItem = new System.Windows.Forms.MenuItem();
             this.MainStatusStrip.SuspendLayout();
             this.MainPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).BeginInit();
@@ -96,6 +96,12 @@ namespace DoomWriter.GUI
             this.HelpOnlineMenuItem,
             this.AboutMenuItem});
             this.HelpMenuItem.Text = "&Help";
+            // 
+            // HelpOnlineMenuItem
+            // 
+            this.HelpOnlineMenuItem.Index = 0;
+            this.HelpOnlineMenuItem.Text = "&Help (online)";
+            this.HelpOnlineMenuItem.Click += new System.EventHandler(this.HelpOnlineMenuItem_Click);
             // 
             // AboutMenuItem
             // 
@@ -229,12 +235,6 @@ namespace DoomWriter.GUI
             this.InputTextBox.TabIndex = 1;
             this.InputTextBox.Text = "Type your text here...";
             this.InputTextBox.Enter += new System.EventHandler(this.InputTextBox_Enter);
-            // 
-            // HelpOnlineMenuItem
-            // 
-            this.HelpOnlineMenuItem.Index = 0;
-            this.HelpOnlineMenuItem.Text = "&Help (online)";
-            this.HelpOnlineMenuItem.Click += new System.EventHandler(this.HelpOnlineMenuItem_Click);
             // 
             // MainForm
             // 

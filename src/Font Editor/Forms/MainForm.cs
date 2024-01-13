@@ -598,6 +598,14 @@ namespace FontEditor.Forms
             Process.Start("https://github.com/Visual-Vincent/DoomWriter/wiki");
         }
 
+        private void AboutMenuItem_Click(object sender, EventArgs e)
+        {
+            using(var aboutBox = new MainAboutBox())
+            {
+                aboutBox.ShowDialog();
+            }
+        }
+
         private void NewToolStripButton_Click(object sender, EventArgs e)
         {
             NewMenuItem_Click(NewMenuItem, EventArgs.Empty);
