@@ -10,7 +10,7 @@ namespace DoomWriter
     /// <summary>
     /// The default Doom Writer text renderer.
     /// </summary>
-    public class TextRenderer : TextRendererBase, ITextRenderer<Image, Glyph>
+    public class TextRenderer : TextRendererBase, ITextRenderer<Image, Glyph>, IDisposable
     {
         private readonly Font DefaultFont = LoadDefaultFont<Font>();
 
@@ -188,5 +188,39 @@ namespace DoomWriter
 
             return new TextMeasurementResult(lines, width, height);
         }
+
+        #region IDisposable Support
+        private bool disposedValue;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(!disposedValue)
+            {
+                if(disposing)
+                {
+                    // Dispose managed resources
+                    DefaultFont.Dispose();
+                }
+
+                // Free unmanaged resources
+
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
+        // ~TextRenderer()
+        // {
+        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

@@ -135,6 +135,7 @@ namespace DoomWriter.GUI
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             currentProcess?.Dispose();
+            renderer?.Dispose();
         }
 
         private void MemoryUsageTimer_Tick(object sender, EventArgs e)
