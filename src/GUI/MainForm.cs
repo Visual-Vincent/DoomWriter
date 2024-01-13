@@ -294,6 +294,11 @@ namespace DoomWriter.GUI
             }
         }
 
+        private void HelpOnlineMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://github.com/Visual-Vincent/DoomWriter/wiki");
+        }
+
         private enum ImageFilters
         {
             PNG = 1,

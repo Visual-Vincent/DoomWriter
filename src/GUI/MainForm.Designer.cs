@@ -51,6 +51,7 @@ namespace DoomWriter.GUI
             this.ResultPanel = new System.Windows.Forms.Panel();
             this.ResultPictureBox = new System.Windows.Forms.PictureBox();
             this.InputTextBox = new System.Windows.Forms.TextBox();
+            this.HelpOnlineMenuItem = new System.Windows.Forms.MenuItem();
             this.MainStatusStrip.SuspendLayout();
             this.MainPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).BeginInit();
@@ -92,12 +93,13 @@ namespace DoomWriter.GUI
             // 
             this.HelpMenuItem.Index = 1;
             this.HelpMenuItem.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
+            this.HelpOnlineMenuItem,
             this.AboutMenuItem});
             this.HelpMenuItem.Text = "&Help";
             // 
             // AboutMenuItem
             // 
-            this.AboutMenuItem.Index = 0;
+            this.AboutMenuItem.Index = 1;
             this.AboutMenuItem.Text = "&About";
             this.AboutMenuItem.Click += new System.EventHandler(this.AboutMenuItem_Click);
             // 
@@ -228,6 +230,12 @@ namespace DoomWriter.GUI
             this.InputTextBox.Text = "Type your text here...";
             this.InputTextBox.Enter += new System.EventHandler(this.InputTextBox_Enter);
             // 
+            // HelpOnlineMenuItem
+            // 
+            this.HelpOnlineMenuItem.Index = 0;
+            this.HelpOnlineMenuItem.Text = "&Help (online)";
+            this.HelpOnlineMenuItem.Click += new System.EventHandler(this.HelpOnlineMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -280,5 +288,6 @@ namespace DoomWriter.GUI
         private MenuItem HelpMenuItem;
         private MenuItem AboutMenuItem;
         private SaveFileDialog ImageSaveFileDialog;
+        private MenuItem HelpOnlineMenuItem;
     }
 }

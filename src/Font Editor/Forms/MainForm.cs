@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
@@ -592,6 +593,11 @@ namespace FontEditor.Forms
             }
         }
 
+        private void HelpOnlineMenuItem_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://github.com/Visual-Vincent/DoomWriter/wiki");
+        }
+
         private void NewToolStripButton_Click(object sender, EventArgs e)
         {
             NewMenuItem_Click(NewMenuItem, EventArgs.Empty);
@@ -605,6 +611,11 @@ namespace FontEditor.Forms
         private void SaveToolStripButton_Click(object sender, EventArgs e)
         {
             SaveMenuItem_Click(SaveMenuItem, EventArgs.Empty);
+        }
+
+        private void HelpToolStripButton_Click(object sender, EventArgs e)
+        {
+            Process.Start("https://github.com/Visual-Vincent/DoomWriter/wiki");
         }
 
         private void PanToolStripButton_Click(object sender, EventArgs e)
