@@ -119,7 +119,7 @@ namespace FontEditor
         /// </summary>
         public IDictionary<char, Glyph> GetCharacterMappings()
         {
-            var definitions = new SortedDictionary<char, Glyph>();
+            var definitions = new SortedDictionary<char, Glyph>(CharComparer.Default);
 
             for(int i = 0; i < MappingsDataGridView.Rows.Count; i++)
             {
@@ -148,7 +148,7 @@ namespace FontEditor
 
             MappingsDataGridView.Rows.Clear();
 
-            foreach(var kvp in glyphs.OrderBy(k => k.Key))
+            foreach(var kvp in glyphs.OrderBy(k => k.Key, CharComparer.Default))
             {
                 var c = kvp.Key;
                 var glyph = kvp.Value;
@@ -330,10 +330,10 @@ namespace FontEditor
 
             if(e.ColumnIndex == 0)
             {
-                if(cell.Value == null || cell.Value is string)
+                if(cell.Value == null || (cell.Value is string str && (str.Length == 0 || !char.IsWhiteSpace(str[0]))))
                     goto sort;
 
-                if(cell.Value is char)
+                if(cell.Value is char c && !char.IsWhiteSpace(c))
                 {
                     cell.Value = cell.Value.ToString();
                     goto sort;
@@ -363,6 +363,14 @@ namespace FontEditor
         private void MappingsDataGridView_RowsRemoved(object sender, DataGridViewRowsRemovedEventArgs e)
         {
             MappingsChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void MappingsDataGridView_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
+        {
+            if(e.Column.Index != 0)
+                return;
+
+            DataGridViewSorter.SortByCharacterColumns(e);
         }
     }
 }

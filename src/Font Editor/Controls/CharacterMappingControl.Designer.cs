@@ -123,6 +123,7 @@
             this.MappingsDataGridView.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.MappingsDataGridView_CellEndEdit);
             this.MappingsDataGridView.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.MappingsDataGridView_RowsRemoved);
             this.MappingsDataGridView.SelectionChanged += new System.EventHandler(this.MappingsDataGridView_SelectionChanged);
+            this.MappingsDataGridView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.MappingsDataGridView_SortCompare);
             // 
             // CharacterColumn
             // 

@@ -66,7 +66,7 @@ namespace FontEditor.Forms
 
                 if(editedFont != null)
                 {
-                    foreach(var pair in editedFont.KernTable.OrderBy(p => p.Left).ThenBy(p => p.Right))
+                    foreach(var pair in editedFont.KernTable.OrderBy(p => p.Left, CharComparer.Default).ThenBy(p => p.Right, CharComparer.Default))
                     {
                         KerningDataGridView.Rows.Add(pair.Left.ToString(), pair.Right.ToString(), pair.Kerning);
                     }
@@ -163,7 +163,7 @@ namespace FontEditor.Forms
 
             editedFont.KernTable.Clear();
 
-            foreach(var pair in pairs.OrderBy(p => p.Left).ThenBy(p => p.Right))
+            foreach(var pair in pairs.OrderBy(p => p.Left, CharComparer.Default).ThenBy(p => p.Right, CharComparer.Default))
             {
                 editedFont.KernTable[pair.Key] = pair.Kerning;
             }
@@ -428,6 +428,30 @@ namespace FontEditor.Forms
         noPreview:
             KerningPreviewErrorLabel.Show();
             KerningPreviewErrorLabel.Text = "Please select a kerning pair";
+        }
+
+        private void KerningDataGridView_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
+        {
+            if(e.Column.Index != 0)
+                return;
+
+            DataGridViewSorter.SortByCharacterColumns(e);
+
+            if(e.SortResult != 0)
+                return; // Sorted values were different, no need to continue
+
+            // If we've reached this point, the first and second row's "Left" columns are identical, and we should instead sort by the "Right" column
+            var row1 = KerningDataGridView.Rows[e.RowIndex1];
+            var row2 = KerningDataGridView.Rows[e.RowIndex2];
+
+            if(row1.Cells.Count < 2 || row2.Cells.Count < 2)
+                return;
+
+            var rightCharSortArgs = new DataGridViewSortCompareEventArgs(RightCharColumn, row1.Cells[1].Value, row2.Cells[1].Value, e.RowIndex1, e.RowIndex2);
+            DataGridViewSorter.SortByCharacterColumns(rightCharSortArgs);
+
+            // Final sort result, after sorting the "Right" column of the rows
+            e.SortResult = rightCharSortArgs.SortResult;
         }
 
         private async void NumericUpDown_ValueChanged(object sender, EventArgs e)

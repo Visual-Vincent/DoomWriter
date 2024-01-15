@@ -555,6 +555,7 @@
             this.KerningDataGridView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.KerningDataGridView_CellValueChanged);
             this.KerningDataGridView.RowsRemoved += new System.Windows.Forms.DataGridViewRowsRemovedEventHandler(this.KerningDataGridView_RowsRemoved);
             this.KerningDataGridView.SelectionChanged += new System.EventHandler(this.KerningDataGridView_SelectionChanged);
+            this.KerningDataGridView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.KerningDataGridView_SortCompare);
             // 
             // LeftCharColumn
             // 
