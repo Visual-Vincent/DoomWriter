@@ -56,7 +56,7 @@
             this.HelpToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.EditingToolStrip = new System.Windows.Forms.ToolStrip();
             this.PanToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.CharacterSelectionToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.CharacterMappingToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.ColorPaletteToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.OpenFontFileDialog = new System.Windows.Forms.OpenFileDialog();
             this.ImageImportFileDialog = new System.Windows.Forms.OpenFileDialog();
@@ -339,7 +339,7 @@
             this.EditingToolStrip.Dock = System.Windows.Forms.DockStyle.None;
             this.EditingToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.PanToolStripButton,
-            this.CharacterSelectionToolStripButton,
+            this.CharacterMappingToolStripButton,
             this.ColorPaletteToolStripButton});
             this.EditingToolStrip.Location = new System.Drawing.Point(117, 0);
             this.EditingToolStrip.Name = "EditingToolStrip";
@@ -358,16 +358,16 @@
             this.PanToolStripButton.Text = "Pan";
             this.PanToolStripButton.Click += new System.EventHandler(this.PanToolStripButton_Click);
             // 
-            // CharacterSelectionToolStripButton
+            // CharacterMappingToolStripButton
             // 
-            this.CharacterSelectionToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.CharacterSelectionToolStripButton.Image = global::FontEditor.Properties.Resources.Select;
-            this.CharacterSelectionToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.CharacterSelectionToolStripButton.Name = "CharacterSelectionToolStripButton";
-            this.CharacterSelectionToolStripButton.Padding = new System.Windows.Forms.Padding(2);
-            this.CharacterSelectionToolStripButton.Size = new System.Drawing.Size(24, 24);
-            this.CharacterSelectionToolStripButton.Text = "Character selection";
-            this.CharacterSelectionToolStripButton.Click += new System.EventHandler(this.CharacterSelectionToolStripButton_Click);
+            this.CharacterMappingToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.CharacterMappingToolStripButton.Image = global::FontEditor.Properties.Resources.Select;
+            this.CharacterMappingToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.CharacterMappingToolStripButton.Name = "CharacterMappingToolStripButton";
+            this.CharacterMappingToolStripButton.Padding = new System.Windows.Forms.Padding(2);
+            this.CharacterMappingToolStripButton.Size = new System.Drawing.Size(24, 24);
+            this.CharacterMappingToolStripButton.Text = "Character mapping";
+            this.CharacterMappingToolStripButton.Click += new System.EventHandler(this.CharacterMappingToolStripButton_Click);
             // 
             // ColorPaletteToolStripButton
             // 
@@ -381,7 +381,8 @@
             // 
             // OpenFontFileDialog
             // 
-            this.OpenFontFileDialog.Filter = "Doom Writer fonts (*.dwfont)|*.dwfont";
+            this.OpenFontFileDialog.Filter = "Doom Writer fonts (*.dwfont)|*.dwfont|Legacy Doom Writer v2.0.0 chart (*.dwriter)" +
+    "|*.dwriter";
             this.OpenFontFileDialog.RestoreDirectory = true;
             // 
             // ImageImportFileDialog
@@ -502,7 +503,7 @@
         private System.Windows.Forms.OpenFileDialog ImageImportFileDialog;
         private System.Windows.Forms.ToolStrip EditingToolStrip;
         private System.Windows.Forms.ToolStripButton PanToolStripButton;
-        private System.Windows.Forms.ToolStripButton CharacterSelectionToolStripButton;
+        private System.Windows.Forms.ToolStripButton CharacterMappingToolStripButton;
         private System.Windows.Forms.ToolStripStatusLabel ToolStripStatusFiller;
         private System.Windows.Forms.ToolStripSplitButton ZoomToolStripDropDownButton;
         private System.Windows.Forms.ToolStripTextBox ZoomLevelToolStripTextBox;

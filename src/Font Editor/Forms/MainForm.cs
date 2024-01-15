@@ -17,6 +17,7 @@ using SixLaborsImage = SixLabors.ImageSharp.Image;
 using SixLaborsImageRgba32 = SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>;
 using DWImage = DoomWriter.Image;
 using DWFont = DoomWriter.Font;
+using FontConverter = DoomWriter.FontConverter;
 
 #pragma warning disable IDE0003 // Remove 'this'
 
@@ -81,6 +82,7 @@ namespace FontEditor.Forms
             UnsavedChanges = false;
 
             SetImageZoom(1.0);
+            MainPictureBox.Image?.Dispose();
             MainPictureBox.Image = null;
 
             if(characterMappingsControl != null)
@@ -107,6 +109,63 @@ namespace FontEditor.Forms
 
             characterMappingsControl.LoadCharacterMappings(editedFont.Glyphs);
             UnsavedChanges = false;
+        }
+
+        private void LoadFontFromFile(string file)
+        {
+            MutableFont font = null;
+
+            try
+            {
+                font = DWFont.Load<MutableFont>(file);
+            }
+            catch(Exception ex)
+            {
+                font?.Dispose();
+                MessageBox.Show("Failed to open font:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            LoadFont(font);
+            editedFontPath = file;
+        }
+
+        private void LoadLegacyChartFromFile(string file)
+        {
+            byte[] chartData;
+            MutableFont font = null;
+            DWFont convertedFont = null;
+
+            try
+            {
+                chartData = File.ReadAllBytes(file);
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("Failed to open legacy chart:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                convertedFont = FontConverter.ConvertLegacyChart(chartData);
+                font = new MutableFont(convertedFont);
+            }
+            catch(Exception ex)
+            {
+                font?.Dispose();
+                MessageBox.Show("Failed to convert legacy chart:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            finally
+            {
+                convertedFont?.Dispose();
+            }
+
+            LoadFont(font);
+
+            editedFontPath = null;
+            UnsavedChanges = true;
         }
 
         private DialogResult SaveChanges()
@@ -244,7 +303,7 @@ namespace FontEditor.Forms
                     break;
 
                 case EditMode.CharacterSelect:
-                    CharacterSelectionToolStripButton.Checked = true;
+                    CharacterMappingToolStripButton.Checked = true;
 
                     MainSplitContainer.SplitterDistance = ClientSize.Width - characterMappingsControl.Width - MainSplitContainer.SplitterWidth;
                     MainSplitContainer.Panel2Collapsed = false;
@@ -500,24 +559,19 @@ namespace FontEditor.Forms
             if(OpenFontFileDialog.ShowDialog() != DialogResult.OK)
                 return;
 
-            string path = OpenFontFileDialog.FileName;
-            MutableFont font = null;
-
+            string file = OpenFontFileDialog.FileName;
             OpenFontFileDialog.FileName = "";
 
-            try
+            switch(OpenFontFileDialog.FilterIndex)
             {
-                font = DWFont.Load<MutableFont>(path);
-            }
-            catch(Exception ex)
-            {
-                font?.Dispose();
-                MessageBox.Show("Failed to open font:" + Environment.NewLine + $"{ex.GetType().FullName}: {ex.Message}", Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
+                case 1: // Standard Doom Writer font
+                    LoadFontFromFile(file);
+                    break;
 
-            LoadFont(font);
-            editedFontPath = path;
+                case 2: // Legacy Doom Writer v2.0.0 chart
+                    LoadLegacyChartFromFile(file);
+                    break;
+            }
         }
 
         private void SaveMenuItem_Click(object sender, EventArgs e)
@@ -631,7 +685,7 @@ namespace FontEditor.Forms
             MainPictureBox.EditMode = EditMode.Pan;
         }
 
-        private void CharacterSelectionToolStripButton_Click(object sender, EventArgs e)
+        private void CharacterMappingToolStripButton_Click(object sender, EventArgs e)
         {
             MainPictureBox.EditMode = EditMode.CharacterSelect;
         }
