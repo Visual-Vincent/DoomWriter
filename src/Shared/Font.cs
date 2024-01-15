@@ -58,7 +58,8 @@ namespace DoomWriter
     /// </summary>
     public class Font : Font<Image, Glyph>, IDisposable
     {
-        private static readonly byte[] FontFormatVersion = new byte[] { 0, 1 };
+        // Font format version number: Different major versions are considered incompatible, whereas different minor versions of the same major version are considered compatible
+        private static readonly byte[] FontFormatVersion = new byte[] { 1, 0 };
         private static readonly byte[] MagicNumber = new byte[] { 0x6, 0x6, 0x6, (byte)'D', (byte)'W', (byte)'F', (byte)'O', (byte)'N' };
 
         private static readonly Encoding StringEncoding = Encoding.UTF8;
@@ -282,9 +283,14 @@ namespace DoomWriter
                 Version fileVersion = new Version(formatVersion[0], formatVersion[1]);
                 Version actualVersion = new Version(FontFormatVersion[0], FontFormatVersion[1]);
 
-                ThrowHelper.Assert(fileVersion <= actualVersion, new FormatException("Font file was created for a newer version of Doom Writer"));
+                if(fileVersion.Major > actualVersion.Major)
+                    throw new FormatException($"Font file was created for a newer version of Doom Writer (current font format version: {actualVersion}, loaded font file version: {fileVersion})");
 
-                // Handle conversion to a newer font file format here, when applicable
+                if(fileVersion.Major != actualVersion.Major)
+                {
+                    // Handle conversion to a newer font file format here, when applicable
+                    throw new FormatException($"Font file is of an unknown version: {fileVersion}");
+                }
 
                 byte[] settings = reader.ReadLengthPrefixed(new FormatException("The contents of the stream is not a valid Doom Writer Font file"));
 
