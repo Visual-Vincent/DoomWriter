@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,7 +31,6 @@ namespace DoomWriter
         {
             foreach(var kvp in translationsTable)
             {
-                DefaultFont.AddTranslation(kvp.Value);
                 translations.Add(kvp.Key, kvp.Value.Clone());
             }
         }
@@ -52,8 +51,16 @@ namespace DoomWriter
 
             foreach(var line in measurement.Lines)
             {
+                var builtInFont = font as Font;
+
                 foreach(var g in line.Glyphs)
                 {
+                    // Cache translations for the built-in font type
+                    if(builtInFont != null && g.Translation != null && !builtInFont.HasTranslation(g.Translation))
+                    {
+                        builtInFont.AddTranslation(g.Translation);
+                    }
+
                     font.DrawGlyph((Glyph)g.Glyph, surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender), g.Translation);
                 }
 
