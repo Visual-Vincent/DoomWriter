@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,7 +14,7 @@ namespace DoomWriter
     {
         private readonly Font DefaultFont = LoadDefaultFont<Font>();
 
-        private readonly Dictionary<string, ColorTranslation> translations = new Dictionary<string, ColorTranslation>();
+        private readonly Dictionary<string, ColorTranslation> translations = new Dictionary<string, ColorTranslation>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRenderer"/> class.
@@ -135,13 +135,15 @@ namespace DoomWriter
                                 continue;
 
                             case '\\':
+                                int codeStart = i + 2;
+
                                 if(backslashCount % 2 == 0)
                                     continue;
 
-                                if(i + 2 >= line.Length || line[i+1] != 'c')
+                                if(codeStart >= line.Length || line[i+1] != 'c')
                                     break;
 
-                                char colorCode = char.ToUpperInvariant(line[i+2]);
+                                char colorCode = char.ToUpperInvariant(line[codeStart]);
 
                                 if(colorCode >= 'A' && colorCode <= 'Z')
                                 {
@@ -155,7 +157,24 @@ namespace DoomWriter
                                     i += 2;
                                     continue;
                                 }
-                                break;
+
+                                codeStart++;
+
+                                if(colorCode != '[' || codeStart >= line.Length || line[codeStart] == ']')
+                                    break; // Not the beginning of a named color code, or the name was empty
+
+                                int codeEnd = line.IndexOf(']', codeStart);
+
+                                if(codeEnd < 0)
+                                    break;
+
+                                string colorCodeName = line.Substring(codeStart, codeEnd - codeStart);
+
+                                if(!translations.TryGetValue(colorCodeName, out currentTranslation))
+                                    break;
+
+                                i = codeEnd;
+                                continue;
                         }
 
                         if(!currentFont.Glyphs.TryGetValue(c, out var glyph))
