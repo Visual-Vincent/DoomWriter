@@ -96,6 +96,7 @@ namespace DoomWriter
                     int x = 0;
                     int lineHeight = line.Length <= 0 ? currentFont.EmptyLineHeight : 0;
                     int tallestDescender = 0;
+                    int backslashCount = 0;
 
                     var fontLineHeight = currentFont.LineHeight;
                     var letterSpacing = currentFont.LetterSpacing;
@@ -121,6 +122,8 @@ namespace DoomWriter
                             x -= letterSpacing;
                         }
 
+                        backslashCount = (c == '\\') ? backslashCount + 1 : 0;
+
                         switch(c)
                         {
                             case ' ':
@@ -132,6 +135,9 @@ namespace DoomWriter
                                 continue;
 
                             case '\\':
+                                if(backslashCount % 2 == 0)
+                                    continue;
+
                                 if(i + 2 >= line.Length || line[i+1] != 'c')
                                     break;
 
