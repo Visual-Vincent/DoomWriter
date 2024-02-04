@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DoomWriter
 {
@@ -34,6 +35,11 @@ namespace DoomWriter
         public int TallestDescender { get; }
 
         /// <summary>
+        /// Gets the collection of text render modifiers that should be applied by the text renderer.
+        /// </summary>
+        public IEnumerable<TextRenderModifier> RenderModifiers { get; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TextMeasuredLine"/> class.
         /// </summary>
         /// <param name="glyphs">The rendered glyphs and their bounds.</param>
@@ -41,7 +47,8 @@ namespace DoomWriter
         /// <param name="height">The height of the rendered text.</param>
         /// <param name="lineHeight">The distance between the current line and the next.</param>
         /// <param name="tallestDescender">The height of the tallest descender found in this line of text.</param>
-        public TextMeasuredLine(IEnumerable<RenderedGlyph> glyphs, int width, int height, int lineHeight, int tallestDescender)
+        /// <param name="renderModifiers">Optional. The collection of text render modifiers that should be applied by the text renderer.</param>
+        public TextMeasuredLine(IEnumerable<RenderedGlyph> glyphs, int width, int height, int lineHeight, int tallestDescender, IEnumerable<TextRenderModifier> renderModifiers = null)
         {
             if(glyphs == null)
                 throw new ArgumentNullException(nameof(glyphs));
@@ -60,6 +67,7 @@ namespace DoomWriter
             Height = height;
             LineHeight = lineHeight;
             TallestDescender = tallestDescender;
+            RenderModifiers = renderModifiers ?? Enumerable.Empty<TextRenderModifier>();
         }
     }
 }

@@ -44,6 +44,15 @@ namespace DoomWriter
             readOnlyRanges = new ReadOnlyCollection<TranslationRange>(ranges);
         }
 
+        public static bool operator !=(ColorTranslation a, ColorTranslation b) => !(a == b);
+        public static bool operator ==(ColorTranslation a, ColorTranslation b)
+        {
+            if(a is null)
+                return b is null;
+
+            return a.Equals(b);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ThrowIfFrozen()
         {

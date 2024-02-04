@@ -5,6 +5,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
 
+using FontModifier = DoomWriter.FontModifier<DoomWriter.Font<DoomWriter.Image, DoomWriter.Glyph>>;
+
 namespace DoomWriter
 {
     /// <summary>
@@ -14,7 +16,17 @@ namespace DoomWriter
     {
         private readonly Font DefaultFont = LoadDefaultFont<Font>();
 
-        private readonly Dictionary<string, ColorTranslation> translations = new Dictionary<string, ColorTranslation>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>
+        /// Gets the table of fonts used by the text renderer.
+        /// </summary>
+        /// <remarks>If a font has the same key as a translation in the <see cref="Translations"/> table, the font will take precedence.</remarks>
+        public Dictionary<string, Font<Image, Glyph>> Fonts { get; } = new Dictionary<string, Font<Image, Glyph>>();
+
+        /// <summary>
+        /// Gets the translation table used by the text renderer.
+        /// </summary>
+        /// <remarks>If a translation has the same key as a font in the <see cref="Fonts"/> table, the font will take precedence.</remarks>
+        public Dictionary<string, ColorTranslation> Translations { get; } = new Dictionary<string, ColorTranslation>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRenderer"/> class.
@@ -31,7 +43,7 @@ namespace DoomWriter
         {
             foreach(var kvp in translationsTable)
             {
-                translations.Add(kvp.Key, kvp.Value.Clone());
+                Translations.Add(kvp.Key, kvp.Value.Clone());
             }
         }
 
@@ -47,21 +59,45 @@ namespace DoomWriter
             var measurement = Measure(text, font);
             var surface = new ImageSurface<Rgba32>(measurement.Width.Clamp(1, int.MaxValue), measurement.Height.Clamp(1, int.MaxValue));
 
+            ColorTranslation currentTranslation = null;
+            Font<Image, Glyph> currentFont = font;
+
             int y = 0;
 
             foreach(var line in measurement.Lines)
             {
-                var builtInFont = font as Font;
+                int glyphIndex = -1;
+
+                var modifier = line.RenderModifiers.GetEnumerator();
+                modifier.MoveNext();
 
                 foreach(var g in line.Glyphs)
                 {
-                    // Cache translations for the built-in font type
-                    if(builtInFont != null && g.Translation != null && !builtInFont.HasTranslation(g.Translation))
+                    glyphIndex++;
+
+                    if(modifier.Current != null && modifier.Current.Position == glyphIndex)
                     {
-                        builtInFont.AddTranslation(g.Translation);
+                        switch(modifier.Current)
+                        {
+                            case ColorTranslationModifier renderModifier:
+                                currentTranslation = renderModifier.Translation;
+
+                                // Cache translations for the built-in font type
+                                if(currentFont is Font builtInFont && currentTranslation != null && !builtInFont.HasTranslation(currentTranslation))
+                                {
+                                    builtInFont.AddTranslation(currentTranslation);
+                                }
+                                break;
+
+                            case FontModifier renderModifier:
+                                currentFont = renderModifier.Font ?? font;
+                                break;
+                        }
+
+                        modifier.MoveNext();
                     }
 
-                    font.DrawGlyph((Glyph)g.Glyph, surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender), g.Translation);
+                    currentFont.DrawGlyph((Glyph)g.Glyph, surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender), currentTranslation);
                 }
 
                 y += line.Height + line.LineHeight;
@@ -91,9 +127,7 @@ namespace DoomWriter
             int height = 0;
 
             var lines = new List<TextMeasuredLine>();
-
-            Font<Image, Glyph> currentFont = font;
-            ColorTranslation currentTranslation = null;
+            var currentFont = font;
 
             using(StringReader reader = new StringReader(text))
             {
@@ -104,6 +138,7 @@ namespace DoomWriter
                     int lineHeight = line.Length <= 0 ? currentFont.EmptyLineHeight : 0;
                     int tallestDescender = 0;
                     int backslashCount = 0;
+                    int glyphIndex = 0;
 
                     var fontLineHeight = currentFont.LineHeight;
                     var letterSpacing = currentFont.LetterSpacing;
@@ -111,6 +146,7 @@ namespace DoomWriter
                     var tabWidth = currentFont.TabWidth;
 
                     var glyphs = new List<RenderedGlyph>();
+                    var renderModifiers = new List<TextRenderModifier>();
 
                     // Ensure spaces are always the same size
                     if(line.Length > 0 && (line[0] == ' ' || line[0] == '\t'))
@@ -118,10 +154,12 @@ namespace DoomWriter
                         x += letterSpacing;
                     }
 
+                    char c = (char)0;
+                    char pc = (char)0;
+
                     for(int i = 0; i < line.Length; i++)
                     {
-                        char c = line[i];
-                        char pc = i > 0 ? line[i-1] : (char)0;
+                        c = line[i];
 
                         // Ensure spaces are always the same size
                         if((pc == ' ' || pc == '\t') && (c != ' ' && c != '\t'))
@@ -142,46 +180,21 @@ namespace DoomWriter
                                 continue;
 
                             case '\\':
-                                int codeStart = i + 2;
-
                                 if(backslashCount % 2 == 0)
                                     continue;
 
-                                if(codeStart >= line.Length || line[i+1] != 'c')
-                                    break;
+                                var renderModifier = ParseEscapeSequence(ref i, line, glyphIndex);
 
-                                char colorCode = char.ToUpperInvariant(line[codeStart]);
+                                if(renderModifier != null)
+                                {
+                                    if(renderModifier is FontModifier fontModifier)
+                                        currentFont = fontModifier.Font ?? font;
 
-                                if(colorCode >= 'A' && colorCode <= 'Z')
-                                {
-                                    translations.TryGetValue(colorCode.ToString(), out currentTranslation);
-                                    i += 2;
-                                    continue;
-                                }
-                                else if(colorCode == '-')
-                                {
-                                    currentTranslation = null;
-                                    i += 2;
+                                    renderModifiers.Add(renderModifier);
                                     continue;
                                 }
 
-                                codeStart++;
-
-                                if(colorCode != '[' || codeStart >= line.Length || line[codeStart] == ']')
-                                    break; // Not the beginning of a named color code, or the name was empty
-
-                                int codeEnd = line.IndexOf(']', codeStart);
-
-                                if(codeEnd < 0)
-                                    break;
-
-                                string colorCodeName = line.Substring(codeStart, codeEnd - codeStart);
-
-                                if(!translations.TryGetValue(colorCodeName, out currentTranslation))
-                                    break;
-
-                                i = codeEnd;
-                                continue;
+                                break;
                         }
 
                         if(!currentFont.Glyphs.TryGetValue(c, out var glyph))
@@ -190,10 +203,11 @@ namespace DoomWriter
                             continue;
                         }
 
-                        if(i > 0)
+                        if(glyphIndex > 0)
                             x += currentFont.KernTable[pc, c];
 
-                        glyphs.Add(new RenderedGlyph(c, glyph, x, 0, currentTranslation)); // y is calculated when rendering
+                        glyphIndex++;
+                        glyphs.Add(new RenderedGlyph(c, glyph, x, 0)); // y is calculated when rendering
 
                         x += glyph.Width + letterSpacing;
 
@@ -205,6 +219,8 @@ namespace DoomWriter
 
                         if(currentFont.LineHeight > fontLineHeight)
                             fontLineHeight = currentFont.LineHeight;
+
+                        pc = c;
                     }
 
                     if(x - letterSpacing > width)
@@ -212,13 +228,84 @@ namespace DoomWriter
 
                     height += lineHeight + fontLineHeight;
 
-                    lines.Add(new TextMeasuredLine(glyphs, x, lineHeight, fontLineHeight, tallestDescender));
+                    lines.Add(new TextMeasuredLine(glyphs, x, lineHeight, fontLineHeight, tallestDescender, renderModifiers));
                 }
 
                 height -= lines.Last().LineHeight;
             }
 
             return new TextMeasurementResult(lines, width, height);
+        }
+
+        private TextRenderModifier ParseEscapeSequence(ref int index, string text, int glyphIndex)
+        {
+            int start = index + 1;
+
+            if(start + 1 >= text.Length)
+                return null;
+
+            var character = char.ToLower(text[start++]);
+
+            switch(character)
+            {
+                case 'c':
+                    char colorCode = char.ToUpperInvariant(text[start++]);
+
+                    if(colorCode >= 'A' && colorCode <= 'Z')
+                    {
+                        if(!Translations.TryGetValue(colorCode.ToString(), out var translation))
+                            break;
+
+                        index += 2;
+                        return new ColorTranslationModifier(glyphIndex, translation);
+                    }
+                    else if(colorCode == '-')
+                    {
+                        index += 2;
+                        return new ColorTranslationModifier(glyphIndex, null);
+                    }
+
+                    if(colorCode != '[' || start >= text.Length || text[start] == ']')
+                        break; // Not the beginning of a named color code, or the name was empty
+
+                    int colorEnd = text.IndexOf(']', start);
+
+                    if(colorEnd < 0)
+                        break;
+
+                    string colorName = text.Substring(start, colorEnd - start);
+
+                    if(!Translations.TryGetValue(colorName, out var namedTranslation))
+                        break;
+
+                    index = colorEnd;
+                    return new ColorTranslationModifier(glyphIndex, namedTranslation);
+
+                case 'f':
+                    if(text[start] == '-')
+                    {
+                        index += 2;
+                        return new FontModifier<Font<Image, Glyph>>(glyphIndex, null);
+                    }
+
+                    if(text[start] != '[' || start + 1 >= text.Length || text[++start] == ']')
+                        break;
+
+                    int fontEnd = text.IndexOf(']', start);
+
+                    if(fontEnd < 0)
+                        break;
+
+                    string fontName = text.Substring(start, fontEnd - start);
+
+                    if(!Fonts.TryGetValue(fontName, out var font))
+                        break;
+
+                    index = fontEnd;
+                    return new FontModifier<Font<Image, Glyph>>(glyphIndex, font);
+            }
+
+            return null;
         }
 
         #region IDisposable Support
