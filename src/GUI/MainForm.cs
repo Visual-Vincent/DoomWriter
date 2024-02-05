@@ -22,6 +22,7 @@ namespace DoomWriter.GUI
             @"\cJStart \cDtyping\cJ in the \cFbox\cJ below to get started.";
 
         internal static string DefaultFontPath => Path.Combine(AppContext.BaseDirectory, "Default.dwfont");
+        internal static string FontsDirectory = Path.Combine(AppContext.BaseDirectory, "Fonts");
 
         private DWFont DefaultRenderFont;
 
@@ -45,7 +46,9 @@ namespace DoomWriter.GUI
                 return;
 
             DefaultRenderFont = DWFont.Load<DWFont>(DefaultFontPath);
-            renderer = new TextRenderer(DefaultRenderFont, ColorTranslator.DefaultTranslations);
+
+            var fontProvider = new LazyFontProvider(FontsDirectory);
+            renderer = new TextRenderer(DefaultRenderFont, fontProvider, ColorTranslator.DefaultTranslations);
             
             try
             {

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using DoomWriter.Interfaces;
 using SixLabors.ImageSharp.PixelFormats;
 
 using FontModifier = DoomWriter.FontModifier<DoomWriter.Font<DoomWriter.Image, DoomWriter.Glyph>>;
@@ -18,15 +19,13 @@ namespace DoomWriter
         private readonly Font<Image, Glyph> DefaultFont;
 
         /// <summary>
-        /// Gets the table of fonts used by the text renderer.
+        /// Gets or sets the font provider used to lookup fonts when the text renderer encounters a font escape sequence.
         /// </summary>
-        /// <remarks>If a font has the same key as a translation in the <see cref="Translations"/> table, the font will take precedence.</remarks>
-        public Dictionary<string, Font<Image, Glyph>> Fonts { get; } = new Dictionary<string, Font<Image, Glyph>>();
+        public IFontProvider<Image, Glyph> FontProvider { get; set; }
 
         /// <summary>
         /// Gets the translation table used by the text renderer.
         /// </summary>
-        /// <remarks>If a translation has the same key as a font in the <see cref="Fonts"/> table, the font will take precedence.</remarks>
         public Dictionary<string, ColorTranslation> Translations { get; } = new Dictionary<string, ColorTranslation>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
@@ -45,6 +44,17 @@ namespace DoomWriter
         /// Initializes a new instance of the <see cref="TextRenderer"/> class.
         /// </summary>
         /// <param name="defaultFont">The default font to use when rendering text.</param>
+        /// <param name="fontProvider">A font provider used to lookup fonts when the text renderer encounters a font escape sequence.</param>
+        public TextRenderer(Font<Image, Glyph> defaultFont, IFontProvider<Image, Glyph> fontProvider)
+            : this(defaultFont)
+        {
+            FontProvider = fontProvider;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TextRenderer"/> class.
+        /// </summary>
+        /// <param name="defaultFont">The default font to use when rendering text.</param>
         /// <param name="translationsTable">A table containing all color translations that will be made available to the renderer.</param>
         public TextRenderer(Font<Image, Glyph> defaultFont, IDictionary<string, ColorTranslation> translationsTable)
             : this(defaultFont)
@@ -53,6 +63,18 @@ namespace DoomWriter
             {
                 Translations.Add(kvp.Key, kvp.Value.Clone());
             }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TextRenderer"/> class.
+        /// </summary>
+        /// <param name="defaultFont">The default font to use when rendering text.</param>
+        /// <param name="fontProvider">A font provider used to lookup fonts when the text renderer encounters a font escape sequence.</param>
+        /// <param name="translationsTable">A table containing all color translations that will be made available to the renderer.</param>
+        public TextRenderer(Font<Image, Glyph> defaultFont, IFontProvider<Image, Glyph> fontProvider, IDictionary<string, ColorTranslation> translationsTable)
+            : this(defaultFont, translationsTable)
+        {
+            FontProvider = fontProvider;
         }
 
         /// <inheritdoc/>
@@ -79,22 +101,14 @@ namespace DoomWriter
                 var modifier = line.RenderModifiers.GetEnumerator();
                 modifier.MoveNext();
 
-                foreach(var g in line.Glyphs)
+                void ProcessModifiers()
                 {
-                    glyphIndex++;
-
                     while(modifier.Current != null && modifier.Current.Position == glyphIndex)
                     {
                         switch(modifier.Current)
                         {
                             case ColorTranslationModifier renderModifier:
                                 currentTranslation = renderModifier.Translation;
-
-                                // Cache translations for the built-in font type
-                                if(currentFont is Font builtInFont && currentTranslation != null && !builtInFont.HasTranslation(currentTranslation))
-                                {
-                                    builtInFont.AddTranslation(currentTranslation);
-                                }
                                 break;
 
                             case FontModifier renderModifier:
@@ -102,11 +116,27 @@ namespace DoomWriter
                                 break;
                         }
 
+                        // Cache translations for the built-in font type
+                        if(currentFont is Font builtInFont && currentTranslation != null && !builtInFont.HasTranslation(currentTranslation))
+                        {
+                            builtInFont.AddTranslation(currentTranslation);
+                        }
+
                         modifier.MoveNext();
                     }
+                }
 
+                foreach(var g in line.Glyphs)
+                {
+                    glyphIndex++;
+
+                    ProcessModifiers();
                     currentFont.DrawGlyph((Glyph)g.Glyph, surface, g.X, y + (line.Height - line.TallestDescender - g.Glyph.Height + g.Glyph.Descender), currentTranslation);
                 }
+
+                // Process any modifiers at the end of the line
+                glyphIndex++;
+                ProcessModifiers();
 
                 y += line.Height + line.LineHeight;
             }
@@ -292,11 +322,14 @@ namespace DoomWriter
                     if(!Translations.TryGetValue(colorName, out var namedTranslation))
                         break;
 
-                    index = start + colorName.Length;
+                    index = start + colorName.Length + 1;
 
                     return new ColorTranslationModifier(glyphIndex, namedTranslation);
 
                 case 'f':
+                    if(FontProvider == null)
+                        return null;
+
                     if(text[start] == '-')
                     {
                         index += 2;
@@ -308,10 +341,12 @@ namespace DoomWriter
                     if(string.IsNullOrEmpty(fontName))
                         return null;
 
-                    if(!Fonts.TryGetValue(fontName, out var font))
+                    var font = FontProvider.FromName(fontName);
+
+                    if(font == null)
                         break;
 
-                    index = start + fontName.Length;
+                    index = start + fontName.Length + 1;
 
                     return new FontModifier<Font<Image, Glyph>>(glyphIndex, font);
             }
