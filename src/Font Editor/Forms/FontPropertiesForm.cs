@@ -23,7 +23,7 @@ namespace FontEditor.Forms
 
         private Task<Image> renderTask = Task.FromResult<Image>(null);
         private Func<Task<Image>> reRenderTask;
-        private TextRenderer renderer = new TextRenderer();
+        private TextRenderer renderer;
 
         /// <summary>
         /// Occurs when the user makes changes and saves them.
@@ -55,6 +55,8 @@ namespace FontEditor.Forms
                 previewFont = new MutableFont(editedFont);
                 previewFont.Image?.Dispose();
                 previewFont.Image = editedFont.Image;
+
+                renderer = new TextRenderer(previewFont);
 
                 KerningDataGridView.Rows.Clear();
 
@@ -182,11 +184,11 @@ namespace FontEditor.Forms
             {
                 if(!renderTask.IsCompleted)
                 {
-                    reRenderTask = async () => await renderer.RenderAsync(text, previewFont);
+                    reRenderTask = async () => await renderer.RenderAsync(text);
                     return;
                 }
 
-                renderTask = Task.Run(async () => await renderer.RenderAsync(text, previewFont));
+                renderTask = Task.Run(async () => await renderer.RenderAsync(text));
             }
 
             while(true)
@@ -235,11 +237,11 @@ namespace FontEditor.Forms
             {
                 if(!renderTask.IsCompleted)
                 {
-                    reRenderTask = async () => await renderer.RenderAsync(text, previewFont);
+                    reRenderTask = async () => await renderer.RenderAsync(text);
                     return;
                 }
 
-                renderTask = Task.Run(async () => await renderer.RenderAsync(text, previewFont));
+                renderTask = Task.Run(async () => await renderer.RenderAsync(text));
             }
 
             while(true)
@@ -305,7 +307,6 @@ namespace FontEditor.Forms
             if(!renderTask.IsCompleted)
                 renderTask.Wait(2000);
 
-            renderer.Dispose();
             renderer = null;
 
             if(previewFont != null)

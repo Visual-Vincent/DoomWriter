@@ -15,11 +15,11 @@ namespace DoomWriter.GUI
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            if(!File.Exists(TextRendererBase.DefaultFontPath))
+            if(!File.Exists(MainForm.DefaultFontPath))
             {
                 MessageBox.Show(
                     "Primary font file not found!" + Environment.NewLine +
-                    $"A file called '{Path.GetFileName(TextRendererBase.DefaultFontPath)}' should be located in the same directory as the application." + Environment.NewLine + Environment.NewLine +
+                    $"A file called '{Path.GetFileName(MainForm.DefaultFontPath)}' should be located in the same directory as the application." + Environment.NewLine + Environment.NewLine +
                     "If you cannot find the file, try downloading Doom Writer again. If the problem persists, please contact the author.",
                     Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error
                 );

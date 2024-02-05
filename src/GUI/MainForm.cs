@@ -10,6 +10,7 @@ using SixLabors.ImageSharp.Formats.Tga;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
+using DWFont = DoomWriter.Font;
 using SixLaborsImage = SixLabors.ImageSharp.Image;
 
 namespace DoomWriter.GUI
@@ -19,6 +20,10 @@ namespace DoomWriter.GUI
         private const string GreetingMessage = 
             @"\cJWelcome to \cLD\cIo\cKo\cFm \cDW\cQr\cHi\cTt\cLe\cRr\cJ!" + "\n\n" +
             @"\cJStart \cDtyping\cJ in the \cFbox\cJ below to get started.";
+
+        internal static string DefaultFontPath => Path.Combine(AppContext.BaseDirectory, "Default.dwfont");
+
+        private DWFont DefaultRenderFont;
 
         private Process currentProcess;
         private TextRenderer renderer;
@@ -39,8 +44,9 @@ namespace DoomWriter.GUI
             if(renderer != null)
                 return;
 
-            renderer = new TextRenderer(ColorTranslator.DefaultTranslations);
-
+            DefaultRenderFont = DWFont.Load<DWFont>(DefaultFontPath);
+            renderer = new TextRenderer(DefaultRenderFont, ColorTranslator.DefaultTranslations);
+            
             try
             {
                 renderStopwatch.Restart();
@@ -135,7 +141,7 @@ namespace DoomWriter.GUI
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             currentProcess?.Dispose();
-            renderer?.Dispose();
+            DefaultRenderFont?.Dispose();
         }
 
         private void MemoryUsageTimer_Tick(object sender, EventArgs e)

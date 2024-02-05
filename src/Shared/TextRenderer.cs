@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -12,9 +13,9 @@ namespace DoomWriter
     /// <summary>
     /// The default Doom Writer text renderer.
     /// </summary>
-    public class TextRenderer : TextRendererBase, ITextRenderer<Image, Glyph>, IDisposable
+    public class TextRenderer : TextRendererBase, ITextRenderer<Image, Glyph>
     {
-        private readonly Font DefaultFont = LoadDefaultFont<Font>();
+        private readonly Font<Image, Glyph> DefaultFont;
 
         /// <summary>
         /// Gets the table of fonts used by the text renderer.
@@ -31,15 +32,22 @@ namespace DoomWriter
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRenderer"/> class.
         /// </summary>
-        public TextRenderer()
+        /// <param name="defaultFont">The default font to use when rendering text.</param>
+        public TextRenderer(Font<Image, Glyph> defaultFont)
         {
+            if(defaultFont == null)
+                throw new ArgumentNullException(nameof(defaultFont));
+
+            DefaultFont = defaultFont;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextRenderer"/> class.
         /// </summary>
+        /// <param name="defaultFont">The default font to use when rendering text.</param>
         /// <param name="translationsTable">A table containing all color translations that will be made available to the renderer.</param>
-        public TextRenderer(IDictionary<string, ColorTranslation> translationsTable)
+        public TextRenderer(Font<Image, Glyph> defaultFont, IDictionary<string, ColorTranslation> translationsTable)
+            : this(defaultFont)
         {
             foreach(var kvp in translationsTable)
             {
@@ -75,7 +83,7 @@ namespace DoomWriter
                 {
                     glyphIndex++;
 
-                    if(modifier.Current != null && modifier.Current.Position == glyphIndex)
+                    while(modifier.Current != null && modifier.Current.Position == glyphIndex)
                     {
                         switch(modifier.Current)
                         {
@@ -191,6 +199,8 @@ namespace DoomWriter
                                         currentFont = fontModifier.Font ?? font;
 
                                     renderModifiers.Add(renderModifier);
+                                    backslashCount = 0;
+
                                     continue;
                                 }
 
@@ -239,6 +249,15 @@ namespace DoomWriter
 
         private TextRenderModifier ParseEscapeSequence(ref int index, string text, int glyphIndex)
         {
+            if(index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be greater than or equal to zero");
+
+            if(text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            if(glyphIndex < 0)
+                throw new ArgumentOutOfRangeException(nameof(glyphIndex), glyphIndex, "Glyph index must be greater than or equal to zero");
+
             int start = index + 1;
 
             if(start + 1 >= text.Length)
@@ -249,7 +268,7 @@ namespace DoomWriter
             switch(character)
             {
                 case 'c':
-                    char colorCode = char.ToUpperInvariant(text[start++]);
+                    char colorCode = char.ToUpperInvariant(text[start]);
 
                     if(colorCode >= 'A' && colorCode <= 'Z')
                     {
@@ -265,20 +284,16 @@ namespace DoomWriter
                         return new ColorTranslationModifier(glyphIndex, null);
                     }
 
-                    if(colorCode != '[' || start >= text.Length || text[start] == ']')
-                        break; // Not the beginning of a named color code, or the name was empty
+                    string colorName = ParseBracketedName(text, start);
 
-                    int colorEnd = text.IndexOf(']', start);
-
-                    if(colorEnd < 0)
-                        break;
-
-                    string colorName = text.Substring(start, colorEnd - start);
+                    if(string.IsNullOrEmpty(colorName))
+                        return null;
 
                     if(!Translations.TryGetValue(colorName, out var namedTranslation))
                         break;
 
-                    index = colorEnd;
+                    index = start + colorName.Length;
+
                     return new ColorTranslationModifier(glyphIndex, namedTranslation);
 
                 case 'f':
@@ -288,58 +303,40 @@ namespace DoomWriter
                         return new FontModifier<Font<Image, Glyph>>(glyphIndex, null);
                     }
 
-                    if(text[start] != '[' || start + 1 >= text.Length || text[++start] == ']')
-                        break;
+                    string fontName = ParseBracketedName(text, start);
 
-                    int fontEnd = text.IndexOf(']', start);
-
-                    if(fontEnd < 0)
-                        break;
-
-                    string fontName = text.Substring(start, fontEnd - start);
+                    if(string.IsNullOrEmpty(fontName))
+                        return null;
 
                     if(!Fonts.TryGetValue(fontName, out var font))
                         break;
 
-                    index = fontEnd;
+                    index = start + fontName.Length;
+
                     return new FontModifier<Font<Image, Glyph>>(glyphIndex, font);
             }
 
             return null;
         }
 
-        #region IDisposable Support
-        private bool disposedValue;
-
-        protected virtual void Dispose(bool disposing)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private string ParseBracketedName(string text, int index)
         {
-            if(!disposedValue)
-            {
-                if(disposing)
-                {
-                    // Dispose managed resources
-                    DefaultFont.Dispose();
-                }
+            if(text == null)
+                throw new ArgumentNullException(nameof(text));
 
-                // Free unmanaged resources
+            if(index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index), index, "Index must be greater than or equal to zero");
 
-                disposedValue = true;
-            }
+            if(text[index] != '[' || index + 1 >= text.Length || text[++index] == ']')
+                return null;
+
+            int end = text.IndexOf(']', index);
+
+            if(end < 0)
+                return null;
+
+            return text.Substring(index, end - index);
         }
-
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~TextRenderer()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
     }
 }
