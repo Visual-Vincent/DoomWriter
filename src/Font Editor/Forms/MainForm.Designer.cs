@@ -266,7 +266,7 @@
             this.InfoLabel.Name = "InfoLabel";
             this.InfoLabel.Size = new System.Drawing.Size(784, 513);
             this.InfoLabel.TabIndex = 1;
-            this.InfoLabel.Text = "Use the menu to open a font, or\r\nimport an image into the current one.";
+            this.InfoLabel.Text = "Use the menu to open an existing font, or\r\nimport an image into the current one.";
             this.InfoLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.InfoLabel.Visible = false;
             // 

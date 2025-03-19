@@ -336,11 +336,6 @@
             0,
             0,
             0});
-            this.LineHeightNumericUpDown.Minimum = new decimal(new int[] {
-            32768,
-            0,
-            0,
-            -2147483648});
             this.LineHeightNumericUpDown.Name = "LineHeightNumericUpDown";
             this.LineHeightNumericUpDown.Size = new System.Drawing.Size(90, 20);
             this.LineHeightNumericUpDown.TabIndex = 10;
