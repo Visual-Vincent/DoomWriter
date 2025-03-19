@@ -14,6 +14,14 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 using DWFont = DoomWriter.Font;
+using GdiBitmap = System.Drawing.Bitmap;
+using GdiColor = System.Drawing.Color;
+using GdiGraphics = System.Drawing.Graphics;
+using GdiImage = System.Drawing.Image;
+using GdiKnownColor = System.Drawing.KnownColor;
+using GdiPoint = System.Drawing.Point;
+using GdiSize = System.Drawing.Size;
+using GdiRectangle = System.Drawing.Rectangle;
 using SixLaborsImage = SixLabors.ImageSharp.Image;
 
 namespace DoomWriter.GUI
@@ -113,31 +121,31 @@ namespace DoomWriter.GUI
             }
         }
 
-        private System.Drawing.Image ConvertDWImage(Image image, double scaleFactor = 1.0)
+        private GdiImage ConvertDWImage(Image image, double scaleFactor = 1.0)
         {
-            System.Drawing.Image result = null;
+            GdiImage result = null;
 
             int width = (int)Math.Ceiling(image.Width * scaleFactor);
             int height = (int)Math.Ceiling(image.Height * scaleFactor);
 
             try
             {
-                result = new System.Drawing.Bitmap(width, height);
+                result = new GdiBitmap(width, height);
 
                 using(var memoryStream = new MemoryStream())
                 {
                     image.Save(memoryStream, ImageFormat.PNG);
                     memoryStream.Position = 0;
 
-                    using(var img = System.Drawing.Image.FromStream(memoryStream))
-                    using(var g = System.Drawing.Graphics.FromImage(result))
+                    using(var img = GdiImage.FromStream(memoryStream))
+                    using(var g = GdiGraphics.FromImage(result))
                     {
                         g.InterpolationMode = InterpolationMode.NearestNeighbor;
                         g.PixelOffsetMode = PixelOffsetMode.Half;
 
                         g.DrawImage(img,
-                            new System.Drawing.Rectangle(System.Drawing.Point.Empty, result.Size),
-                            new System.Drawing.Rectangle(System.Drawing.Point.Empty, img.Size),
+                            new GdiRectangle(GdiPoint.Empty, result.Size),
+                            new GdiRectangle(GdiPoint.Empty, img.Size),
                             System.Drawing.GraphicsUnit.Pixel
                         );
 
@@ -235,7 +243,7 @@ namespace DoomWriter.GUI
         {
             InputTextBox.Enter -= InputTextBox_Enter;
             InputTextBox.Text = "";
-            InputTextBox.ForeColor = System.Drawing.Color.FromKnownColor(System.Drawing.KnownColor.WindowText);
+            InputTextBox.ForeColor = GdiColor.FromKnownColor(GdiKnownColor.WindowText);
             InputTextBox.TextChanged += InputTextBox_TextChanged;
         }
 
