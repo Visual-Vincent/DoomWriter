@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using DoomWriter.GUI.Controls;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -20,8 +21,8 @@ using GdiGraphics = System.Drawing.Graphics;
 using GdiImage = System.Drawing.Image;
 using GdiKnownColor = System.Drawing.KnownColor;
 using GdiPoint = System.Drawing.Point;
-using GdiSize = System.Drawing.Size;
 using GdiRectangle = System.Drawing.Rectangle;
+using GdiSize = System.Drawing.Size;
 using SixLaborsImage = SixLabors.ImageSharp.Image;
 
 namespace DoomWriter.GUI
@@ -207,6 +208,7 @@ namespace DoomWriter.GUI
 
             MainToolStrip.Renderer = new BorderedToolStripRenderer(ToolStripStatusLabelBorderSides.Bottom);
             MainStatusStrip.Renderer = new BorderedToolStripRenderer(ToolStripStatusLabelBorderSides.Top);
+            TextColorsToolStrip.Renderer = new BorderedToolStripRenderer(ToolStripStatusLabelBorderSides.Bottom);
 
             foreach(int scalePercent in new int[] { 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 400, 800, 1600, 3200 })
             {
@@ -220,6 +222,24 @@ namespace DoomWriter.GUI
 
                 RenderScaleToolStripSplitButton.DropDownItems.Add(button);
             }
+        }
+
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            this.Shown -= MainForm_Shown;
+
+            var dummyTranslation = new ColorTranslation();
+            dummyTranslation.Add(new TranslationRange(0, 256, new Rgba32(255, 255, 255, 255), new Rgba32(255, 255, 255, 255)));
+
+            using(var editor = new TextColorEditor())
+            {
+                editor.EditedTranslation = dummyTranslation;
+                editor.Refresh();
+
+                MainSplitContainer.Panel2MinSize = editor.Width + SystemInformation.VerticalScrollBarWidth / 2;
+            }
+
+            MainSplitContainer.SplitterDistance = int.MaxValue;
         }
 
         private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -400,6 +420,12 @@ namespace DoomWriter.GUI
             SaveAsMenuItem_Click(SaveAsMenuItem, EventArgs.Empty);
         }
 
+        private void TextColorsToolStripButton_Click(object sender, EventArgs e)
+        {
+            TextColorsToolStripButton.Checked = !TextColorsToolStripButton.Checked;
+            MainSplitContainer.Panel2Collapsed = !TextColorsToolStripButton.Checked;
+        }
+
         private void RenderScaleToolStripSplitButton_ButtonClick(object sender, EventArgs e)
         {
             var menuItems = RenderScaleToolStripSplitButton.DropDownItems
@@ -495,6 +521,16 @@ namespace DoomWriter.GUI
             e.Handled = true;
 
             RenderScaleToolStripTextBox_LostFocus(sender, e);
+        }
+
+        private void NewTranslationToolStripButton_Click(object sender, EventArgs e)
+        {
+            var editor = new TextColorEditor() {
+                Dock = DockStyle.Top
+            };
+
+            MainSplitContainer.Panel2.Controls.Add(editor);
+            TextColorsToolStrip.SendToBack();
         }
 
         private enum ImageFilters

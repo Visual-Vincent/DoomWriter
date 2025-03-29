@@ -46,13 +46,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Remove="Licenses\.gitkeep" />
-    <None Update="Licenses\.gitkeep">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="..\Shared\Licenses\ImageSharp-THIRD-PARTY-NOTICES.txt" Link="Licenses\ImageSharp-THIRD-PARTY-NOTICES.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

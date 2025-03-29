@@ -42,7 +42,7 @@ namespace DoomWriter
                 throw new ArgumentOutOfRangeException(nameof(luminanceStart), "The start luminance of the color range must be between 0 and 256");
             
             if(luminanceEnd > 256)
-                throw new ArgumentOutOfRangeException(nameof(luminanceStart), "The end luminance of the color range must be between 0 and 256");
+                throw new ArgumentOutOfRangeException(nameof(luminanceEnd), "The end luminance of the color range must be between 0 and 256");
 
             if(luminanceStart >= luminanceEnd)
                 throw new ArgumentOutOfRangeException(nameof(luminanceStart), "The start luminance of the color range must be less than the end luminance");

@@ -48,24 +48,33 @@ namespace DoomWriter.GUI
             this.ToolStripRenderTimeLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.MemoryUsageTimer = new System.Windows.Forms.Timer(this.components);
             this.ImageSaveFileDialog = new System.Windows.Forms.SaveFileDialog();
-            this.MainPanel = new System.Windows.Forms.Panel();
             this.MainSplitContainer = new System.Windows.Forms.SplitContainer();
+            this.MainPanel = new System.Windows.Forms.Panel();
+            this.InputSplitContainer = new System.Windows.Forms.SplitContainer();
             this.ResultPanel = new System.Windows.Forms.Panel();
             this.ResultPictureBox = new System.Windows.Forms.PictureBox();
             this.InputTextBox = new System.Windows.Forms.TextBox();
+            this.TextColorsToolStrip = new System.Windows.Forms.ToolStrip();
+            this.NewTranslationToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.MainToolStrip = new System.Windows.Forms.ToolStrip();
             this.SaveToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.TextColorsToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.ToolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.RenderScaleToolStripSplitButton = new System.Windows.Forms.ToolStripSplitButton();
             this.RenderScaleToolStripTextBox = new System.Windows.Forms.ToolStripTextBox();
             this.MainStatusStrip.SuspendLayout();
-            this.MainPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).BeginInit();
             this.MainSplitContainer.Panel1.SuspendLayout();
             this.MainSplitContainer.Panel2.SuspendLayout();
             this.MainSplitContainer.SuspendLayout();
+            this.MainPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.InputSplitContainer)).BeginInit();
+            this.InputSplitContainer.Panel1.SuspendLayout();
+            this.InputSplitContainer.Panel2.SuspendLayout();
+            this.InputSplitContainer.SuspendLayout();
             this.ResultPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ResultPictureBox)).BeginInit();
+            this.TextColorsToolStrip.SuspendLayout();
             this.MainToolStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -173,37 +182,60 @@ namespace DoomWriter.GUI
     "images (*.tga)|*.tga";
             this.ImageSaveFileDialog.RestoreDirectory = true;
             // 
+            // MainSplitContainer
+            // 
+            this.MainSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.MainSplitContainer.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
+            this.MainSplitContainer.Location = new System.Drawing.Point(0, 27);
+            this.MainSplitContainer.Name = "MainSplitContainer";
+            // 
+            // MainSplitContainer.Panel1
+            // 
+            this.MainSplitContainer.Panel1.Controls.Add(this.MainPanel);
+            // 
+            // MainSplitContainer.Panel2
+            // 
+            this.MainSplitContainer.Panel2.AutoScroll = true;
+            this.MainSplitContainer.Panel2.Controls.Add(this.TextColorsToolStrip);
+            this.MainSplitContainer.Panel2.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.MainSplitContainer.Panel2Collapsed = true;
+            this.MainSplitContainer.Panel2MinSize = 200;
+            this.MainSplitContainer.Size = new System.Drawing.Size(884, 492);
+            this.MainSplitContainer.SplitterDistance = 25;
+            this.MainSplitContainer.TabIndex = 4;
+            // 
             // MainPanel
             // 
             this.MainPanel.BackgroundImage = global::DoomWriter.GUI.Properties.Resources.WindowBackground;
-            this.MainPanel.Controls.Add(this.MainSplitContainer);
+            this.MainPanel.Controls.Add(this.InputSplitContainer);
             this.MainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainPanel.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.MainPanel.Location = new System.Drawing.Point(0, 27);
+            this.MainPanel.Location = new System.Drawing.Point(0, 0);
+            this.MainPanel.Margin = new System.Windows.Forms.Padding(0);
             this.MainPanel.Name = "MainPanel";
             this.MainPanel.Padding = new System.Windows.Forms.Padding(32);
             this.MainPanel.Size = new System.Drawing.Size(884, 492);
             this.MainPanel.TabIndex = 0;
             // 
-            // MainSplitContainer
+            // InputSplitContainer
             // 
-            this.MainSplitContainer.BackColor = System.Drawing.Color.DimGray;
-            this.MainSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.MainSplitContainer.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-            this.MainSplitContainer.Location = new System.Drawing.Point(32, 32);
-            this.MainSplitContainer.Name = "MainSplitContainer";
-            this.MainSplitContainer.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.InputSplitContainer.BackColor = System.Drawing.Color.DimGray;
+            this.InputSplitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.InputSplitContainer.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
+            this.InputSplitContainer.Location = new System.Drawing.Point(32, 32);
+            this.InputSplitContainer.Name = "InputSplitContainer";
+            this.InputSplitContainer.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
-            // MainSplitContainer.Panel1
+            // InputSplitContainer.Panel1
             // 
-            this.MainSplitContainer.Panel1.Controls.Add(this.ResultPanel);
+            this.InputSplitContainer.Panel1.Controls.Add(this.ResultPanel);
             // 
-            // MainSplitContainer.Panel2
+            // InputSplitContainer.Panel2
             // 
-            this.MainSplitContainer.Panel2.Controls.Add(this.InputTextBox);
-            this.MainSplitContainer.Size = new System.Drawing.Size(820, 428);
-            this.MainSplitContainer.SplitterDistance = 287;
-            this.MainSplitContainer.TabIndex = 0;
+            this.InputSplitContainer.Panel2.Controls.Add(this.InputTextBox);
+            this.InputSplitContainer.Size = new System.Drawing.Size(820, 428);
+            this.InputSplitContainer.SplitterDistance = 287;
+            this.InputSplitContainer.TabIndex = 0;
             // 
             // ResultPanel
             // 
@@ -242,12 +274,35 @@ namespace DoomWriter.GUI
             this.InputTextBox.Text = "Type your text here...";
             this.InputTextBox.Enter += new System.EventHandler(this.InputTextBox_Enter);
             // 
+            // TextColorsToolStrip
+            // 
+            this.TextColorsToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
+            this.TextColorsToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.NewTranslationToolStripButton});
+            this.TextColorsToolStrip.Location = new System.Drawing.Point(0, 0);
+            this.TextColorsToolStrip.Name = "TextColorsToolStrip";
+            this.TextColorsToolStrip.Padding = new System.Windows.Forms.Padding(4, 0, 1, 0);
+            this.TextColorsToolStrip.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
+            this.TextColorsToolStrip.Size = new System.Drawing.Size(96, 27);
+            this.TextColorsToolStrip.TabIndex = 0;
+            // 
+            // NewTranslationToolStripButton
+            // 
+            this.NewTranslationToolStripButton.Image = global::DoomWriter.GUI.Properties.Resources.Add;
+            this.NewTranslationToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.NewTranslationToolStripButton.Name = "NewTranslationToolStripButton";
+            this.NewTranslationToolStripButton.Padding = new System.Windows.Forms.Padding(2);
+            this.NewTranslationToolStripButton.Size = new System.Drawing.Size(107, 24);
+            this.NewTranslationToolStripButton.Text = "New text color";
+            this.NewTranslationToolStripButton.Click += new System.EventHandler(this.NewTranslationToolStripButton_Click);
+            // 
             // MainToolStrip
             // 
             this.MainToolStrip.BackgroundImage = global::DoomWriter.GUI.Properties.Resources.ToolBarBackground;
             this.MainToolStrip.GripStyle = System.Windows.Forms.ToolStripGripStyle.Hidden;
             this.MainToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.SaveToolStripButton,
+            this.TextColorsToolStripButton,
             this.ToolStripSeparator3,
             this.RenderScaleToolStripSplitButton});
             this.MainToolStrip.Location = new System.Drawing.Point(0, 0);
@@ -267,6 +322,17 @@ namespace DoomWriter.GUI
             this.SaveToolStripButton.Size = new System.Drawing.Size(24, 24);
             this.SaveToolStripButton.Text = "&Save";
             this.SaveToolStripButton.Click += new System.EventHandler(this.SaveToolStripButton_Click);
+            // 
+            // TextColorsToolStripButton
+            // 
+            this.TextColorsToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.TextColorsToolStripButton.Image = global::DoomWriter.GUI.Properties.Resources.Palette;
+            this.TextColorsToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.TextColorsToolStripButton.Name = "TextColorsToolStripButton";
+            this.TextColorsToolStripButton.Padding = new System.Windows.Forms.Padding(2);
+            this.TextColorsToolStripButton.Size = new System.Drawing.Size(24, 24);
+            this.TextColorsToolStripButton.Text = "Text &Colors";
+            this.TextColorsToolStripButton.Click += new System.EventHandler(this.TextColorsToolStripButton_Click);
             // 
             // ToolStripSeparator3
             // 
@@ -300,7 +366,7 @@ namespace DoomWriter.GUI
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(884, 541);
-            this.Controls.Add(this.MainPanel);
+            this.Controls.Add(this.MainSplitContainer);
             this.Controls.Add(this.MainStatusStrip);
             this.Controls.Add(this.MainToolStrip);
             this.ForeColor = System.Drawing.Color.White;
@@ -311,17 +377,25 @@ namespace DoomWriter.GUI
             this.Text = "Doom Writer";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
+            this.Shown += new System.EventHandler(this.MainForm_Shown);
             this.MainStatusStrip.ResumeLayout(false);
             this.MainStatusStrip.PerformLayout();
-            this.MainPanel.ResumeLayout(false);
             this.MainSplitContainer.Panel1.ResumeLayout(false);
             this.MainSplitContainer.Panel2.ResumeLayout(false);
             this.MainSplitContainer.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.MainSplitContainer)).EndInit();
             this.MainSplitContainer.ResumeLayout(false);
+            this.MainPanel.ResumeLayout(false);
+            this.InputSplitContainer.Panel1.ResumeLayout(false);
+            this.InputSplitContainer.Panel2.ResumeLayout(false);
+            this.InputSplitContainer.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.InputSplitContainer)).EndInit();
+            this.InputSplitContainer.ResumeLayout(false);
             this.ResultPanel.ResumeLayout(false);
             this.ResultPanel.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ResultPictureBox)).EndInit();
+            this.TextColorsToolStrip.ResumeLayout(false);
+            this.TextColorsToolStrip.PerformLayout();
             this.MainToolStrip.ResumeLayout(false);
             this.MainToolStrip.PerformLayout();
             this.ResumeLayout(false);
@@ -335,7 +409,7 @@ namespace DoomWriter.GUI
         private MenuItem FileMenuItem;
         private MenuItem ExitMenuItem;
         private StatusStrip MainStatusStrip;
-        private SplitContainer MainSplitContainer;
+        private SplitContainer InputSplitContainer;
         private ToolStripStatusLabel ToolStripLabelStatus;
         private ToolStripStatusLabel ToolStripSeparator1;
         private ToolStripStatusLabel ToolStripMemoryUsageLabel;
@@ -356,5 +430,9 @@ namespace DoomWriter.GUI
         private ToolStripSplitButton RenderScaleToolStripSplitButton;
         private ToolStripTextBox RenderScaleToolStripTextBox;
         private ToolStripSeparator ToolStripSeparator3;
+        private SplitContainer MainSplitContainer;
+        private ToolStripButton TextColorsToolStripButton;
+        private ToolStrip TextColorsToolStrip;
+        private ToolStripButton NewTranslationToolStripButton;
     }
 }
